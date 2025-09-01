@@ -1,0 +1,22 @@
+<?= $this->extend('_layout') ?>
+<?= $this->section('content') ?>
+<h1 class="text-center mb-4">Edit Barang</h1>
+<div class="card p-4 mx-auto" style="max-width: 500px;">
+    <form action="<?= base_url('admin/items/edit/' . $item['id']) ?>" method="post">
+        <div class="mb-3">
+            <label for="nama_item" class="form-label">Nama Barang:</label>
+            <input type="text" class="form-control" id="nama_item" name="nama_item" value="<?= $item['nama_item'] ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="harga" class="form-label">Harga:</label>
+            <input type="number" class="form-control" id="harga" name="harga" value="<?= $item['harga'] ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="stok" class="form-label">Stok:</label>
+            <input type="number" class="form-control" id="stok" name="stok" value="<?= $item['stok'] ?>" required>
+        </div>
+        <button type="submit" class="btn btn-purple">Update</button>
+        <a href="<?= base_url('admin/items') ?>" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+<?= $this->endSection() ?>
