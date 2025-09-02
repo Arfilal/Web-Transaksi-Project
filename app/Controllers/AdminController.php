@@ -150,18 +150,28 @@ class AdminController extends Controller
     }
 
     public function report()
-    {
-        $data['daily_sales'] = $this->transactionModel->getDailySales();
-        $data['weekly_sales'] = $this->transactionModel->getWeeklySales();
-        $data['item_sales'] = $this->transactionDetailModel->select('items.nama_item, SUM(transaction_details.quantity) as total_quantity')->join('items', 'items.id = transaction_details.item_id')->groupBy('items.nama_item')->findAll();
-        $data['daily_labels'] = array_column($data['daily_sales'], 'date');
-        $data['daily_data'] = array_column($data['daily_sales'], 'total');
-        $data['weekly_labels'] = array_column($data['weekly_sales'], 'week');
-        $data['weekly_data'] = array_column($data['weekly_sales'], 'total');
-        $data['item_labels'] = array_column($data['item_sales'], 'nama_item');
-        $data['item_data'] = array_column($data['item_sales'], 'total_quantity');
-        return view('admin/reports/index', $data);
-    }
+{
+    // Ambil data dari Model
+    $data['daily_sales'] = $this->transactionModel->getDailySales();
+    $data['weekly_sales'] = $this->transactionModel->getWeeklySales();
+    $data['item_sales'] = $this->transactionDetailModel
+                                ->select('items.nama_item, SUM(transaction_details.quantity) as total_quantity')
+                                ->join('items', 'items.id = transaction_details.item_id')
+                                ->groupBy('items.nama_item')
+                                ->findAll();
+
+    // Siapkan data untuk ChartJS
+    $data['daily_labels'] = array_column($data['daily_sales'], 'date');
+    $data['daily_data']   = array_column($data['daily_sales'], 'total');
+
+    $data['weekly_labels'] = array_column($data['weekly_sales'], 'week');
+    $data['weekly_data']   = array_column($data['weekly_sales'], 'total');
+
+    $data['item_labels'] = array_column($data['item_sales'], 'nama_item');
+    $data['item_data']   = array_column($data['item_sales'], 'total_quantity');
+
+    return view('admin/reports/index', $data);
+}
 
     public function exportPdf()
     {

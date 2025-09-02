@@ -34,17 +34,28 @@ $routes->group('admin', function ($routes) {
     $routes->get('reports/export-excel', 'AdminController::exportExcel');
 });
 
-// Rute untuk Konsumen
 $routes->group('konsumen', function ($routes) {
     $routes->get('pembelian', 'ConsumerController::index');
     $routes->get('pembelian/add/(:num)', 'ConsumerController::addToCart/$1');
+    
+    // checkout bisa GET (lihat halaman) & POST (kirim data)
     $routes->get('pembelian/checkout', 'ConsumerController::checkout');
+    $routes->post('pembelian/checkout', 'ConsumerController::checkout');
 
     $routes->get('riwayat', 'ConsumerController::history');
     $routes->get('riwayat/(:num)', 'ConsumerController::historyDetail/$1');
 
-    // Rute untuk Pengembalian dan Retur
     $routes->get('pengembalian', 'ConsumerController::returns');
     $routes->get('retur/(:num)', 'ConsumerController::showReturnForm/$1');
     $routes->post('retur/create', 'ConsumerController::createReturn');
 });
+
+$routes->get('transaksi/sukses', 'ConsumerController::sukses');
+$routes->get('transaksi/gagal', 'ConsumerController::gagal');
+
+
+
+
+
+
+

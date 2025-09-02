@@ -9,9 +9,6 @@ use App\Models\ReturnModel;
 use App\Models\CartModel;
 use App\Models\CartItemModel;
 use CodeIgniter\Controller;
-use Dompdf\Dompdf;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ConsumerController extends Controller
 {
@@ -46,7 +43,7 @@ class ConsumerController extends Controller
         $data['cart_items'] = [];
         if ($cart) {
             $data['cart_items'] = $this->cartItemModel
-                ->select('cart_items.*, items.nama_item')
+                ->select('cart_items.*, items.nama_item, items.harga')
                 ->join('items', 'items.id = cart_items.item_id')
                 ->where('cart_id', $cart['id'])
                 ->findAll();
@@ -87,56 +84,66 @@ class ConsumerController extends Controller
         return redirect()->to(base_url('konsumen/pembelian'))->with('success', 'Barang berhasil ditambahkan ke keranjang!');
     }
 
-    public function checkout()
-    {
-        $userId = $this->session->get('userId');
-        $cart = $this->cartModel->where('user_id', $userId)->first();
+   public function checkout()
+{
+    $xenditApiKey = 'xnd_development_kXAZ6Qo0ucZcLrd7OTzcOaOZqisI3n5uP0iB185G9oKzizPPT5dWyCwyzgC'; // ganti dengan API key kamu
 
-        if (!$cart) {
-            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang belanja masih kosong.');
+    // Ambil userId dari session
+    $userId = $this->session->get('userId');
+    $cart = $this->cartModel->where('user_id', $userId)->first();
+    $total = 0;
+
+    if ($cart) {
+        $cartItems = $this->cartItemModel
+            ->select('cart_items.*, items.harga')
+            ->join('items', 'items.id = cart_items.item_id')
+            ->where('cart_id', $cart['id'])
+            ->findAll();
+
+        foreach ($cartItems as $item) {
+            $total += $item['harga'] * $item['quantity'];
         }
-
-        $cartItems = $this->cartItemModel->where('cart_id', $cart['id'])->findAll();
-        if (empty($cartItems)) {
-            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang belanja masih kosong.');
-        }
-
-        $totalAmount = 0;
-        foreach ($cartItems as $cartItem) {
-            $item = $this->itemModel->find($cartItem['item_id']);
-            $totalAmount += $item['harga'] * $cartItem['quantity'];
-        }
-
-        $transactionData = [
-            'transaction_code' => 'TRX-' . time(),
-            'transaction_date' => date('Y-m-d H:i:s'),
-            'total_amount' => $totalAmount,
-        ];
-        $this->transactionModel->insert($transactionData);
-        $transactionId = $this->transactionModel->getInsertID();
-
-        foreach ($cartItems as $cartItem) {
-            $detailData = [
-                'transaction_id' => $transactionId,
-                'item_id' => $cartItem['item_id'],
-                'quantity' => $cartItem['quantity'],
-                'price' => $this->itemModel->find($cartItem['item_id'])['harga']
-            ];
-            $this->transactionDetailModel->insert($detailData);
-
-            $item = $this->itemModel->find($cartItem['item_id']);
-            $newStok = $item['stok'] - $cartItem['quantity'];
-            $this->itemModel->update($item['id'], ['stok' => $newStok]);
-        }
-        
-        $this->cartItemModel->where('cart_id', $cart['id'])->delete();
-        $this->cartModel->delete($cart['id']);
-
-        return redirect()->to(base_url('konsumen/riwayat'))->with('success', 'Pembelian berhasil!');
     }
 
-    // --- Metode-metode lain di bawah ini tetap sama ---
+    if ($total <= 0) {
+        return redirect()->to(base_url('konsumen/pembelian'))
+            ->with('error', 'Keranjang masih kosong!');
+    }
 
+    $data = [
+        'external_id' => 'order-' . time(),
+        'amount' => $total,
+        'payer_email' => 'test@example.com', // bisa diganti email user
+        'description' => 'Pembelian Produk dari Web POS',
+        'success_redirect_url' => base_url('transaksi/sukses'),
+        'failure_redirect_url' => base_url('transaksi/gagal'),
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://api.xendit.co/v2/invoices');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_USERPWD, $xenditApiKey . ':');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $response = json_decode($result, true);
+
+    if (isset($response['invoice_url'])) {
+        // kosongkan keranjang setelah checkout
+        $this->cartItemModel->where('cart_id', $cart['id'])->delete();
+
+        return redirect()->to($response['invoice_url']);
+    } else {
+        // tampilkan error dari API Xendit
+        return $this->response->setJSON($response);
+    }
+}
+
+
+    // --- Metode lain tetap sama ---
     public function history()
     {
         $data['transactions'] = $this->transactionModel->findAll(); 
@@ -186,4 +193,38 @@ class ConsumerController extends Controller
         ]);
         return redirect()->to(base_url('konsumen/pengembalian'))->with('success', 'Permintaan retur berhasil diajukan. Status akan diperbarui oleh admin.');
     }
+
+    public function webhook()
+{
+    // --- Debug log ---
+    log_message('info', 'Header token: ' . $this->request->getHeaderLine('X-CALLBACK-TOKEN'));
+    log_message('info', 'ENV token: ' . getenv('XENDIT_CALLBACK_TOKEN'));
+
+    // --- Validasi token ---
+    $callbackToken = $this->request->getHeaderLine('X-CALLBACK-TOKEN');
+    $expectedToken = getenv('XENDIT_CALLBACK_TOKEN');
+
+    if ($callbackToken !== $expectedToken) {
+        return $this->response->setStatusCode(403)
+            ->setJSON(['message' => 'Invalid token']);
+    }
+
+    // --- Ambil payload ---
+    $json = $this->request->getJSON(true);
+    log_message('info', 'Webhook payload: ' . json_encode($json));
+
+    return $this->response->setJSON(['message' => 'Webhook received']);
 }
+
+public function sukses()
+{
+    return view('transaksi/sukses'); 
+}
+
+public function gagal()
+{
+    return view('transaksi/gagal');
+}
+
+}
+

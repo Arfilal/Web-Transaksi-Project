@@ -47,11 +47,13 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  */
 
 // LOAD OUR PATHS CONFIG FILE
-// This is the line that might need to be changed, depending on your folder structure.
 require FCPATH . '../app/Config/Paths.php';
 // ^^^ Change this line if you move your application folder
 
 $paths = new Paths();
+
+// ✅ LOAD COMPOSER AUTOLOAD (supaya Xendit\Xendit bisa dipakai)
+require FCPATH . '../vendor/autoload.php';
 
 // LOAD THE FRAMEWORK BOOTSTRAP FILE
 require $paths->systemDirectory . '/Boot.php';
