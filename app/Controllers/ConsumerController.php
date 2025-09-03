@@ -195,26 +195,44 @@ class ConsumerController extends Controller
     }
 
     public function webhook()
-{
-    // --- Debug log ---
-    log_message('info', 'Header token: ' . $this->request->getHeaderLine('X-CALLBACK-TOKEN'));
-    log_message('info', 'ENV token: ' . getenv('XENDIT_CALLBACK_TOKEN'));
+    {
+        $callbackToken = $this->request->getHeaderLine('X-CALLBACK-TOKEN');
+        $expectedToken = getenv('XENDIT_CALLBACK_TOKEN');
 
-    // --- Validasi token ---
-    $callbackToken = $this->request->getHeaderLine('X-CALLBACK-TOKEN');
-    $expectedToken = getenv('XENDIT_CALLBACK_TOKEN');
+        // Validasi token callback dari Xendit
+        if ($callbackToken !== $expectedToken) {
+            log_message('error', 'Invalid callback token from Xendit');
+            return $this->failUnauthorized('Invalid callback token');
+        }
 
-    if ($callbackToken !== $expectedToken) {
-        return $this->response->setStatusCode(403)
-            ->setJSON(['message' => 'Invalid token']);
+        $payload = $this->request->getJSON(true);
+
+        if (!$payload || !isset($payload['id']) || !isset($payload['status'])) {
+            log_message('error', 'Invalid callback payload: ' . json_encode($payload));
+            return $this->fail('Invalid payload', 400);
+        }
+
+        $xenditInvoiceId = $payload['id'];
+        $status = $payload['status'];
+
+        $transactionModel = new TransactionModel();
+        $transaction = $transactionModel->where('xendit_invoice_id', $xenditInvoiceId)->first();
+
+        if (!$transaction) {
+            log_message('error', 'Transaction not found for invoice: ' . $xenditInvoiceId);
+            return $this->failNotFound('Transaction not found');
+        }
+
+        // Update status transaksi
+        $transactionModel->update($transaction['id'], [
+            'status' => $status
+        ]);
+
+        log_message('info', 'Transaction ' . $transaction['id'] . ' updated to status ' . $status);
+
+        return $this->respond(['message' => 'Callback processed successfully']);
     }
 
-    // --- Ambil payload ---
-    $json = $this->request->getJSON(true);
-    log_message('info', 'Webhook payload: ' . json_encode($json));
-
-    return $this->response->setJSON(['message' => 'Webhook received']);
-}
 
 public function sukses()
 {

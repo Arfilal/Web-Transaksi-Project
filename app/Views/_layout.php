@@ -8,28 +8,28 @@
     <style>
         body {
             background-color: #1a1a2e; /* Warna ungu gelap soft */
-            color: #dcdcdc; /* Warna teks abu-abu terang */
+            color: #dcdcdc;
         }
         .container {
             margin-top: 50px;
         }
         .card {
-            background-color: #2a2a4a; /* Warna card lebih terang dari background */
+            background-color: #2a2a4a;
             border: none;
             border-radius: 15px;
             color: #dcdcdc;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
         .btn-purple {
-            background-color: #8c7ae6; /* Warna ungu medium */
+            background-color: #8c7ae6;
             border: none;
             color: #FFFFFF;
         }
         .btn-purple:hover {
-            background-color: #7b68ee; /* Warna ungu lebih terang saat di-hover */
+            background-color: #7b68ee;
         }
         h1, h2, h3 {
-            color: #c9a0dc; /* Warna ungu muda untuk judul */
+            color: #c9a0dc;
         }
         .table {
             color: #dcdcdc;
@@ -44,8 +44,17 @@
         .nav-link {
             color: #dcdcdc !important;
         }
-        .nav-link:hover {
+        .nav-link.active, .nav-link:hover, 
+        .dropdown-item.active, .dropdown-item:hover {
             color: #c9a0dc !important;
+            font-weight: bold;
+            background-color: transparent !important;
+        }
+        .dropdown-menu {
+            background-color: #2a2a4a;
+        }
+        .dropdown-item {
+            color: #dcdcdc;
         }
     </style>
 </head>
@@ -62,29 +71,45 @@
                 <!-- Navigasi untuk Admin -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('admin/items') ?>">Manajemen Barang</a>
+                        <a class="nav-link <?= (uri_string() == 'admin/items') ? 'active' : '' ?>" href="<?= base_url('admin/items') ?>">Manajemen Barang</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('admin/transactions') ?>">Riwayat Transaksi</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('admin/returns') ?>">Pengembalian</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('admin/reports') ?>">Laporan</a>
+
+                    <!-- Dropdown Menu Stok -->
+                    <!-- Dropdown Menu Stok -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle <?= (uri_string() == 'admin/restok' || uri_string() == 'admin/restoker' || uri_string() == 'admin/restok/history') ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Stok
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item <?= (uri_string() == 'admin/restoker') ? 'active' : '' ?>" href="<?= base_url('admin/restoker') ?>">Restoker</a></li>
+        <li><a class="dropdown-item <?= (uri_string() == 'admin/restok') ? 'active' : '' ?>" href="<?= base_url('admin/restok') ?>">Restok</a></li>
+        <li><a class="dropdown-item <?= (uri_string() == 'admin/restok/history') ? 'active' : '' ?>" href="<?= base_url('admin/restok/history') ?>">History Restok</a></li>
+    </ul>
+</li>
+
+                    <!-- Dropdown Menu Laporan -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?= (strpos(uri_string(), 'admin/reports') !== false) ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Laporan
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item <?= (uri_string() == 'admin/reports/stok') ? 'active' : '' ?>" href="<?= base_url('admin/reports/stok') ?>">Laporan Stok</a></li>
+                            <li><a class="dropdown-item <?= (uri_string() == 'admin/reports/transaksi') ? 'active' : '' ?>" href="<?= base_url('admin/reports/transaksi') ?>">Laporan Transaksi</a></li>
+                            <li><a class="dropdown-item <?= (uri_string() == 'admin/reports/pengembalian') ? 'active' : '' ?>" href="<?= base_url('admin/reports/pengembalian') ?>">Laporan Pengembalian</a></li>
+                        </ul>
                     </li>
                 </ul>
             <?php elseif (strpos(current_url(), '/konsumen') !== false): ?>
                 <!-- Navigasi untuk Konsumen -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('konsumen/pembelian') ?>">Pembelian</a>
+                        <a class="nav-link <?= (uri_string() == 'konsumen/pembelian') ? 'active' : '' ?>" href="<?= base_url('konsumen/pembelian') ?>">Pembelian</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('konsumen/riwayat') ?>">Riwayat Pembelian</a>
+                        <a class="nav-link <?= (uri_string() == 'konsumen/riwayat') ? 'active' : '' ?>" href="<?= base_url('konsumen/riwayat') ?>">Riwayat Pembelian</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('konsumen/pengembalian') ?>">Pengembalian</a>
+                        <a class="nav-link <?= (uri_string() == 'konsumen/pengembalian') ? 'active' : '' ?>" href="<?= base_url('konsumen/pengembalian') ?>">Pengembalian</a>
                     </li>
                 </ul>
             <?php endif; ?>
@@ -93,6 +118,8 @@
 </nav>
 
 <div class="container" style="margin-top: 80px;">
+
+    
     <?= $this->renderSection('content') ?>
 </div>
 

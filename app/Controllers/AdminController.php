@@ -206,4 +206,47 @@ class AdminController extends Controller
         $writer->save('php://output');
         exit;
     }
+
+    public function reportTransaksi()
+{
+    $data['transaksi'] = $this->transactionModel
+        ->select('transactions.*')
+        ->findAll();
+
+    return view('admin/reports/transaksi', $data);
+}
+
+
+public function reportPengembalian()
+{
+    $data['pengembalian'] = $this->returnModel
+        ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
+        ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
+        ->join('items', 'items.id = td.item_id', 'left')
+        ->join('transactions', 'transactions.id = td.transaction_id', 'left')
+        ->findAll();
+
+    return view('admin/reports/pengembalian', $data);
+}
+
+public function reportStok()
+{
+    $db = \Config\Database::connect();
+
+    $builder = $db->table('restok r');
+    $builder->select([
+        'i.nama_item AS nama_item',
+        'r.stok_dipesan AS jumlah',
+        'r.tanggal_pesan AS tanggal',
+        'rs.nama_restoker AS restoker',
+    ]);
+    $builder->join('items i', 'i.id = r.id_item', 'left');
+    $builder->join('restokers rs', 'rs.id = r.id_restoker', 'left');
+
+    $data['restok'] = $builder->get()->getResultArray();
+
+    return view('admin/reports/stok', $data);
+}
+
+
 }
