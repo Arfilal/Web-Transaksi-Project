@@ -17,7 +17,8 @@ class RestokerController extends BaseController
     {
         $data = [
             'title'     => 'Daftar Restoker',
-            'restokers' => $this->restokerModel->findAll()
+            'restokers' => $this->restokerModel->paginate(10),
+            'pager'     => $this->restokerModel->pager
         ];
 
         return view('restokers/index', $data);

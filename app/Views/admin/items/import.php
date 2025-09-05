@@ -14,7 +14,7 @@
             <label for="excel_file" class="form-label">Pilih File Excel:</label>
             <input type="file" class="form-control" id="excel_file" name="excel_file" required>
         </div>
-        <button type="submit" class="btn btn-purple">Unggah dan Impor</button>
+        <button type="submit" class="btn btn-primary">Unggah dan Impor</button>
         <a href="<?= base_url('admin/items') ?>" class="btn btn-secondary">Batal</a>
     </form>
 </div>

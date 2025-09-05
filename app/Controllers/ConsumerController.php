@@ -33,24 +33,34 @@ class ConsumerController extends Controller
 
     // --- Menu Pembelian ---
     public function index()
-    {
-        $userId = $this->session->get('userId') ?? 'guest_' . session_id();
-        $this->session->set('userId', $userId);
+{
+    $userId = $this->session->get('userId') ?? 'guest_' . session_id();
+    $this->session->set('userId', $userId);
 
-        $data['items'] = $this->itemModel->findAll();
-        
-        $cart = $this->cartModel->where('user_id', $userId)->first();
-        $data['cart_items'] = [];
-        if ($cart) {
-            $data['cart_items'] = $this->cartItemModel
-                ->select('cart_items.*, items.nama_item, items.harga')
-                ->join('items', 'items.id = cart_items.item_id')
-                ->where('cart_id', $cart['id'])
-                ->findAll();
+    $data['items'] = $this->itemModel->findAll();
+
+    $cart = $this->cartModel->where('user_id', $userId)->first();
+    $data['cart_items'] = [];
+    $grandTotal = 0;
+
+    if ($cart) {
+        // ambil cart_items.id sebagai cart_item_id
+        $data['cart_items'] = $this->cartItemModel
+            ->select('cart_items.id as cart_item_id, cart_items.quantity, items.nama_item, items.harga')
+            ->join('items', 'items.id = cart_items.item_id')
+            ->where('cart_id', $cart['id'])
+            ->findAll();
+
+        foreach ($data['cart_items'] as $ci) {
+            $grandTotal += $ci['harga'] * $ci['quantity'];
         }
-
-        return view('consumer/items/index', $data);
     }
+
+    $data['grandTotal'] = $grandTotal;
+
+    return view('consumer/items/index', $data);
+}
+
 
     public function addToCart($id)
     {
@@ -243,6 +253,93 @@ public function gagal()
 {
     return view('transaksi/gagal');
 }
+
+public function addSelected()
+{
+    $userId = $this->session->get('userId') ?? 'guest_' . session_id();
+    $this->session->set('userId', $userId);
+
+    // cari/buat keranjang
+    $cart = $this->cartModel->where('user_id', $userId)->first();
+    if (!$cart) {
+        $this->cartModel->insert(['user_id' => $userId]);
+        $cartId = $this->cartModel->getInsertID();
+    } else {
+        $cartId = $cart['id'];
+    }
+
+    $selectedIds = (array) $this->request->getPost('item_id');
+    $qtyMap      = (array) $this->request->getPost('qty');
+
+    if (empty($selectedIds)) {
+        return redirect()->back()->with('error', 'Pilih minimal satu barang.');
+    }
+
+    foreach ($selectedIds as $itemId) {
+        $item = $this->itemModel->find($itemId);
+        if (!$item) {
+            continue;
+        }
+
+        $qty = isset($qtyMap[$itemId]) ? max(1, (int)$qtyMap[$itemId]) : 1;
+
+        // validasi stok
+        if ($qty > $item['stok']) {
+            $qty = $item['stok'];
+        }
+
+        // cek apakah barang sudah ada di keranjang
+        $cartItem = $this->cartItemModel
+            ->where(['cart_id' => $cartId, 'item_id' => $itemId])
+            ->first();
+
+        if ($cartItem) {
+            $newQty = $cartItem['quantity'] + $qty;
+            if ($newQty > $item['stok']) {
+                $newQty = $item['stok'];
+            }
+            $this->cartItemModel->update($cartItem['id'], ['quantity' => $newQty]);
+        } else {
+            $this->cartItemModel->insert([
+                'cart_id'  => $cartId,
+                'item_id'  => $itemId,
+                'quantity' => $qty
+            ]);
+        }
+    }
+
+    return redirect()->to(base_url('konsumen/pembelian'))
+                     ->with('success', 'Barang terpilih berhasil masuk keranjang.');
+}
+
+public function remove($id)
+{
+    $userId = $this->session->get('userId');
+
+    // cari keranjang user
+    $cart = $this->cartModel->where('user_id', $userId)->first();
+    if (!$cart) {
+        return redirect()->to(base_url('konsumen/pembelian'))
+                         ->with('error', 'Keranjang tidak ditemukan.');
+    }
+
+    // hapus item berdasarkan id cart_items
+    $cartItem = $this->cartItemModel->where([
+        'id' => $id,
+        'cart_id' => $cart['id']
+    ])->first();
+
+    if ($cartItem) {
+        $this->cartItemModel->delete($id);
+        return redirect()->to(base_url('konsumen/pembelian'))
+                         ->with('success', 'Barang berhasil dihapus dari keranjang.');
+    }
+
+    return redirect()->to(base_url('konsumen/pembelian'))
+                     ->with('error', 'Barang tidak ditemukan di keranjang.');
+}
+
+
 
 }
 

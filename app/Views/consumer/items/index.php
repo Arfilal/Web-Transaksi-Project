@@ -3,107 +3,91 @@
 
 <h1 class="text-center mb-4">Menu Pembelian</h1>
 
-<div class="card p-4">
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= session()->getFlashdata('success') ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= session()->getFlashdata('error') ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+<form action="<?= base_url('konsumen/pembelian/add-selected') ?>" method="post">
 
-    <table id="barangTable" class="table table-bordered table-striped">
-    <thead class="table-dark">
+    <!-- Tombol pindah ke atas -->
+    <div class="text-start mb-3">
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-cart-plus"></i> Tambah ke Keranjang
+        </button>
+    </div>
+
+    <table id="barangTable" class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Pilih</th>
+                <th>No.</th>
+                <th>Nama Barang</th>
+                <th>Harga</th>
+                <th>Stok</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $no = 1; foreach ($items as $item): ?>
+            <tr>
+                <td><input type="checkbox" name="item_id[]" value="<?= $item['id']; ?>"></td>
+                <td><?= $no++ ?></td>
+                <td><?= esc($item['nama_item']) ?></td>
+                <td>Rp<?= number_format($item['harga'], 0, ',', '.') ?></td>
+                <td><?= $item['stok'] ?></td>
+                <td style="width:90px;">
+                    <input type="number" 
+                           name="qty[<?= $item['id']; ?>]" 
+                           value="1" min="1" max="<?= (int)$item['stok']; ?>" 
+                           class="form-control bg-dark text-light border-secondary">
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+</form>
+
+<!-- Keranjang Belanja -->
+<h2 class="text-center mb-4">Keranjang Belanja</h2>
+<div class="p-4 bg-dark text-white rounded">
+    <table class="table table-dark table-hover text-center">
+        <thead>
+            <tr>
+                <th>Nama Barang</th>
+                <th>Harga</th>
+                <th>Jumlah</th>
+                <th>Subtotal</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+    <?php if (!empty($cart_items)): ?>
+        <?php foreach ($cart_items as $ci): ?>
         <tr>
-            <th>No.</th>
-            <th>Nama Barang</th>
-            <th>Harga</th>
-            <th>Stok</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php 
-        $no = 1; 
-        foreach ($items as $item): 
-        ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= esc($item['nama_item']) ?></td>
-            <td>Rp<?= number_format($item['harga'], 0, ',', '.') ?></td>
-            <td><?= $item['stok'] ?></td>
+            <td><?= esc($ci['nama_item']) ?></td>
+            <td>Rp<?= number_format($ci['harga']) ?></td>
+            <td><?= $ci['quantity'] ?></td>
+            <td>Rp<?= number_format($ci['harga'] * $ci['quantity']) ?></td>
             <td>
-                <a href="<?= base_url('konsumen/pembelian/add/' . $item['id']) ?>" 
-                   class="btn btn-sm btn-success">Beli</a>
+                <a href="<?= base_url('konsumen/pembelian/remove/' . $ci['cart_item_id']) ?>" 
+                   class="btn btn-danger btn-sm"
+                   onclick="return confirm('Hapus barang ini dari keranjang?')">
+                    <i class="bi bi-trash"></i> Hapus
+                </a>
             </td>
         </tr>
         <?php endforeach; ?>
-    </tbody>
-</table>
-
-</div>
-
-<!-- Keranjang Belanja -->
-<div class="card p-4 mt-4">
-    <h3 class="text-center mb-3">Keranjang Belanja</h3>
-    <?php if (!empty($cart_items)): ?>
-        <table class="table table-hover">
-            <thead class="table-secondary">
-                <tr>
-                    <th>Nama Barang</th>
-                    <th>Harga</th>
-                    <th>Jumlah</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $grandTotal = 0;
-                foreach ($cart_items as $itemInCart): 
-                    $subtotal = $itemInCart['harga'] * $itemInCart['quantity'];
-                    $grandTotal += $subtotal;
-                ?>
-                <tr>
-                    <td><?= esc($itemInCart['nama_item']) ?></td>
-                    <td>Rp<?= number_format($itemInCart['harga'], 0, ',', '.') ?></td>
-                    <td><?= $itemInCart['quantity'] ?></td>
-                    <td>Rp<?= number_format($subtotal, 0, ',', '.') ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-            <tfoot class="table-light">
-                <tr>
-                    <th colspan="3" class="text-end">Grand Total</th>
-                    <th>Rp<?= number_format($grandTotal, 0, ',', '.') ?></th>
-                </tr>
-            </tfoot>
-        </table>
-        <div class="text-center mt-3">
-            <a href="<?= base_url('konsumen/pembelian/checkout') ?>" class="btn btn-primary">
-                Proses Pembelian
-            </a>
-        </div>
     <?php else: ?>
-        <p class="text-center">Keranjang masih kosong.</p>
+        <tr>
+            <td colspan="5" class="text-center">Keranjang kosong</td>
+        </tr>
     <?php endif; ?>
-</div>
+</tbody>
 
-<!-- Optional: aktifkan DataTables biar tabel lebih interaktif -->
-<script>
-    $(document).ready(function() {
-        $('#barangTable').DataTable({
-            "language": {
-                "search": "Cari Barang:",
-                "lengthMenu": "Tampilkan _MENU_ data",
-                "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data"
-            }
-        });
-    });
-</script>
+    </table>
+    <div class="text-end mt-3">
+        <h4>Grand Total: Rp<?= number_format($grandTotal) ?></h4>
+        <a href="<?= base_url('konsumen/pembelian/checkout') ?>" class="btn btn-primary">
+            Proses Pembelian
+        </a>
+    </div>
+</div>
 
 <?= $this->endSection() ?>

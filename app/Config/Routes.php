@@ -59,6 +59,8 @@ $routes->group('admin', function ($routes) {
 
         // ✅ History Restok
         $routes->get('history', 'RestokController::history');
+        // Export History Restok ke Excel
+        $routes->get('history/export-excel', 'RestokController::exportHistoryExcel');
     });
 
     // ✅ CRUD Restoker
@@ -78,10 +80,16 @@ $routes->group('admin', function ($routes) {
 $routes->group('konsumen', function ($routes) {
     $routes->get('pembelian', 'ConsumerController::index');
     $routes->get('pembelian/add/(:num)', 'ConsumerController::addToCart/$1');
+
+    // ✅ Tambah barang banyak sekaligus
+    $routes->post('pembelian/add-selected', 'ConsumerController::addSelected');
     
     // Checkout
     $routes->get('pembelian/checkout', 'ConsumerController::checkout');
     $routes->post('pembelian/checkout', 'ConsumerController::checkout');
+
+    // ✅ Hapus item dari keranjang
+    $routes->get('pembelian/remove/(:num)', 'ConsumerController::remove/$1');
 
     $routes->get('riwayat', 'ConsumerController::history');
     $routes->get('riwayat/(:num)', 'ConsumerController::historyDetail/$1');

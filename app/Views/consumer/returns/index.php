@@ -1,7 +1,8 @@
 <?= $this->extend('_layout') ?>
 <?= $this->section('content') ?>
 <h1 class="text-center mb-4">Pengembalian Barang</h1>
-<div class="card p-4">
+
+<div class="table-responsive">
     <table class="table table-hover">
         <thead>
             <tr>

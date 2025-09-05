@@ -29,10 +29,12 @@ class AdminController extends Controller
 
     // --- Menu Barang (CRUD) ---
     public function items()
-    {
-        $data['items'] = $this->itemModel->findAll();
-        return view('admin/items/index', $data);
-    }
+{
+    $data['items'] = $this->itemModel->paginate(10); // tampilkan 10 per halaman
+    $data['pager'] = $this->itemModel->pager;       // kirim pager ke view
+    return view('admin/items/index', $data);
+}
+
 
     public function createItem()
     {
@@ -74,41 +76,46 @@ class AdminController extends Controller
         return view('admin/items/import');
     }
 
-    public function importExcel()
-    {
-        $file = $this->request->getFile('excel_file');
-        
-        if (!$file || !$file->isValid()) {
-            return redirect()->back()->with('error', 'Silakan pilih file Excel yang valid.');
-        }
-        
+   public function importExcel()
+{
+    $file = $this->request->getFile('excel_file');
+
+    if (!$file || !$file->isValid()) {
+        return redirect()->back()->with('error', 'Silakan pilih file Excel yang valid.');
+    }
+
+    try {
+        // Pakai PhpSpreadsheet
         $reader = IOFactory::createReaderForFile($file->getTempName());
         $spreadsheet = $reader->load($file->getTempName());
         $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-        
+
         $importedCount = 0;
         foreach ($sheetData as $key => $row) {
-            if ($key === 1) { // Lewati baris header
+            if ($key === 1) { // Lewati header baris pertama
                 continue;
             }
 
-            // Asumsi kolom A: nama_item, B: harga, C: stok
             $data = [
-                'nama_item' => $row['A'],
-                'harga'     => $row['B'],
-                'stok'      => $row['C'],
+                'nama_item' => trim($row['A']),
+                'harga'     => (int) $row['B'],
+                'stok'      => (int) $row['C'],
             ];
 
-            // Validasi data sederhana
-            if (!empty($data['nama_item']) && is_numeric($data['harga']) && is_numeric($data['stok'])) {
+            if (!empty($data['nama_item']) && $data['harga'] > 0 && $data['stok'] >= 0) {
                 if ($this->itemModel->insert($data)) {
                     $importedCount++;
                 }
             }
         }
 
-        return redirect()->to(base_url('admin/items'))->with('success', "$importedCount barang berhasil diimpor.");
+        return redirect()->to(base_url('admin/items'))
+            ->with('success', "$importedCount barang berhasil diimpor.");
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Gagal mengimpor file: ' . $e->getMessage());
     }
+}
+
 
     // --- Menu Riwayat Transaksi ---
     public function transactions()
@@ -207,15 +214,16 @@ class AdminController extends Controller
         exit;
     }
 
-    public function reportTransaksi()
+   public function reportTransaksi()
 {
     $data['transaksi'] = $this->transactionModel
         ->select('transactions.*')
-        ->findAll();
+        ->paginate(10); // ✅ tampilkan 10 data per halaman
+
+    $data['pager'] = $this->transactionModel->pager; // ✅ kirim pager ke view
 
     return view('admin/reports/transaksi', $data);
 }
-
 
 public function reportPengembalian()
 {
@@ -224,10 +232,13 @@ public function reportPengembalian()
         ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
         ->join('items', 'items.id = td.item_id', 'left')
         ->join('transactions', 'transactions.id = td.transaction_id', 'left')
-        ->findAll();
+        ->paginate(10); // ✅ pagination juga
+
+    $data['pager'] = $this->returnModel->pager; // ✅ kirim pager ke view
 
     return view('admin/reports/pengembalian', $data);
 }
+
 
 public function reportStok()
 {
@@ -241,7 +252,7 @@ public function reportStok()
         'rs.nama_restoker AS restoker',
     ]);
     $builder->join('items i', 'i.id = r.id_item', 'left');
-    $builder->join('restokers rs', 'rs.id = r.id_restoker', 'left');
+    $builder->join('restokers rs', 'rs.id_restoker = r.id_restoker', 'left');
 
     $data['restok'] = $builder->get()->getResultArray();
 
