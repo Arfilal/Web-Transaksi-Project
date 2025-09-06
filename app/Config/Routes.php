@@ -10,6 +10,24 @@ $routes->get('/', function () {
 });
 
 // ======================
+// Rute untuk Login & Logout
+// ======================
+$routes->get('login', 'AuthController::login');
+$routes->post('auth/login', 'AuthController::login'); // opsional kalau mau login manual
+$routes->get('logout', 'AuthController::logout');
+
+// ======================
+// Rute untuk Google Login
+// ======================
+$routes->get('auth/google', 'AuthController::redirectToGoogle');
+$routes->get('auth/google/callback', 'AuthController::handleGoogleCallback');
+
+// ======================
+// Dashboard setelah login
+// ======================
+$routes->get('dashboard', 'DashboardController::index');
+
+// ======================
 // Rute untuk Admin
 // ======================
 $routes->group('admin', function ($routes) {
