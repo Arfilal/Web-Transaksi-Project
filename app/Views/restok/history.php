@@ -2,7 +2,7 @@
 <?= $this->section('content') ?>
 
 <div class="container mt-4">
-    <h3>History Restok</h3>
+    <h3 class="mb-3">🕑 Histori Restok</h3>
 
     <a href="<?= base_url('admin/restok/history/export-excel') ?>" class="btn btn-success mb-3">
         Export Excel

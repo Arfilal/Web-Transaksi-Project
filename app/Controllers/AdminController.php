@@ -214,13 +214,13 @@ class AdminController extends Controller
         exit;
     }
 
-   public function reportTransaksi()
+  public function reportTransaksi()
 {
     $data['transaksi'] = $this->transactionModel
         ->select('transactions.*')
-        ->paginate(10); // ✅ tampilkan 10 data per halaman
+        ->paginate(10); // tampilkan 10 data per halaman
 
-    $data['pager'] = $this->transactionModel->pager; // ✅ kirim pager ke view
+    $data['pager'] = $this->transactionModel->pager; // kirim pager ke view
 
     return view('admin/reports/transaksi', $data);
 }
@@ -232,18 +232,16 @@ public function reportPengembalian()
         ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
         ->join('items', 'items.id = td.item_id', 'left')
         ->join('transactions', 'transactions.id = td.transaction_id', 'left')
-        ->paginate(10); // ✅ pagination juga
+        ->paginate(10); // pagination juga
 
-    $data['pager'] = $this->returnModel->pager; // ✅ kirim pager ke view
+    $data['pager'] = $this->returnModel->pager; // kirim pager ke view
 
     return view('admin/reports/pengembalian', $data);
 }
 
-
 public function reportStok()
 {
     $db = \Config\Database::connect();
-
     $builder = $db->table('restok r');
     $builder->select([
         'i.nama_item AS nama_item',
@@ -254,10 +252,22 @@ public function reportStok()
     $builder->join('items i', 'i.id = r.id_item', 'left');
     $builder->join('restokers rs', 'rs.id_restoker = r.id_restoker', 'left');
 
+    // pagination manual
+    $perPage = 10;
+    $page    = (int)($this->request->getVar('page') ?? 1);
+    $offset  = ($page - 1) * $perPage;
+
+    $total   = $builder->countAllResults(false); // hitung total data
+    $builder->limit($perPage, $offset);
     $data['restok'] = $builder->get()->getResultArray();
+
+    // service pager
+    $pager = \Config\Services::pager();
+    $data['pager'] = $pager->makeLinks($page, $perPage, $total);
 
     return view('admin/reports/stok', $data);
 }
+
 
 
 }

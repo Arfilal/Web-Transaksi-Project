@@ -2,7 +2,7 @@
 <?= $this->section('content') ?>
 
 <div class="container mt-4">
-    <h3>Data Restok</h3>
+    <h3>📦 Data Restok</h3>
 
     <!-- Flash Message -->
     <?php if (session()->getFlashdata('success')): ?>

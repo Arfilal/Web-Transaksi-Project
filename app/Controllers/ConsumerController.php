@@ -37,14 +37,16 @@ class ConsumerController extends Controller
     $userId = $this->session->get('userId') ?? 'guest_' . session_id();
     $this->session->set('userId', $userId);
 
-    $data['items'] = $this->itemModel->findAll();
+    // ✅ Pagination untuk daftar barang
+    $data['items'] = $this->itemModel->paginate(10, 'items');
+    $data['pager'] = $this->itemModel->pager;
 
+    // keranjang user
     $cart = $this->cartModel->where('user_id', $userId)->first();
     $data['cart_items'] = [];
     $grandTotal = 0;
 
     if ($cart) {
-        // ambil cart_items.id sebagai cart_item_id
         $data['cart_items'] = $this->cartItemModel
             ->select('cart_items.id as cart_item_id, cart_items.quantity, items.nama_item, items.harga')
             ->join('items', 'items.id = cart_items.item_id')
@@ -60,7 +62,6 @@ class ConsumerController extends Controller
 
     return view('consumer/items/index', $data);
 }
-
 
     public function addToCart($id)
     {
@@ -155,10 +156,12 @@ class ConsumerController extends Controller
 
     // --- Metode lain tetap sama ---
     public function history()
-    {
-        $data['transactions'] = $this->transactionModel->findAll(); 
-        return view('consumer/history/index', $data);
-    }
+{
+    $data['transactions'] = $this->transactionModel->paginate(10, 'transactions');
+    $data['pager'] = $this->transactionModel->pager;
+    return view('consumer/history/index', $data);
+}
+
 
     public function historyDetail($id)
     {

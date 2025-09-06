@@ -24,6 +24,18 @@
         100% { background-position: 0% 50%; }
     }
 
+    /* Hapus putih-putih di luar */
+    .container, .content, .main-content {
+        background-color: transparent !important;
+        margin: 0;
+        padding: 0;
+    }
+    .card, .bg-white, .shadow {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
     /* Sidebar */
     .sidebar {
         min-height: 100vh;
@@ -87,6 +99,7 @@
         padding: 20px;
         animation: contentFade 0.8s ease forwards;
         opacity: 0;
+        width: calc(100% - 260px); /* sejajar full */
     }
     @keyframes contentFade { to { opacity: 1; } }
 
@@ -103,7 +116,13 @@
     }
 
     /* Table */
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
     .table {
+        width: 100%;
+        margin: 0;
         color: #fff;
         background-color: #212529;
         border-radius: 12px;
@@ -113,7 +132,7 @@
     .table th {
         background-color: #1f1f1f;
         border-bottom: 2px solid #343A40;
-        color: #c9a0dc;
+        color: #fff; /* ubah ke putih */
         text-transform: uppercase;
         font-weight: 600;
         font-size: 14px;
@@ -214,7 +233,9 @@
         <i class="bi bi-speedometer2"></i>
         <?= $title ?? 'Dashboard Admin' ?>
     </h3>
-    <?= $this->renderSection('content') ?>
+    <div class="table-wrapper">
+        <?= $this->renderSection('content') ?>
+    </div>
 </div>
 
 <?php else: ?>
@@ -237,7 +258,9 @@
         <i class="bi bi-person-circle"></i>
         <?= $title ?? 'Dashboard Konsumen' ?>
     </h3>
-    <?= $this->renderSection('content') ?>
+    <div class="table-wrapper">
+        <?= $this->renderSection('content') ?>
+    </div>
 </div>
 <?php endif; ?>
 

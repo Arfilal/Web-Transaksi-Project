@@ -25,7 +25,12 @@
                 <td><?= number_format($d['price']) ?></td>
                 <td><?= $d['quantity'] ?></td>
                 <td><?= number_format($d['price'] * $d['quantity']) ?></td>
-                <td><a href="<?= base_url('konsumen/retur/' . $d['id']) ?>" class="btn btn-sm btn-danger">Retur</a></td>
+                <td>
+    <a href="<?= base_url('konsumen/retur/' . $d['id']) ?>" 
+       class="btn btn-sm btn-danger">
+       <i class="bi bi-arrow-counterclockwise"></i> Retur
+    </a>
+</td>
             </tr>
             <?php endforeach; ?>
         </tbody>

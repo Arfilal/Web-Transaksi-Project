@@ -1,17 +1,18 @@
 <?= $this->extend('_layout') ?>
 
 <?= $this->section('content') ?>
-    <h2 class="text-center mb-4">Daftar Barang</h2>
+    <h3>📋 Manajemen Barang</h3>
 
     <!-- Tombol Import & Tambah -->
-    <div class="mb-3 d-flex justify-content-between">
-        <a href="<?= base_url('admin/items/import') ?>" class="btn btn-success">
-            <i class="bi bi-file-earmark-excel"></i> Import
-        </a>
-        <a href="<?= base_url('admin/items/create') ?>" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Tambah
-        </a>
-    </div>
+<div class="mb-3 d-flex">
+    <a href="<?= base_url('admin/items/import') ?>" class="btn btn-success me-2">
+        <i class="bi bi-file-earmark-excel"></i> Import
+    </a>
+    <a href="<?= base_url('admin/items/create') ?>" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Tambah
+    </a>
+</div>
+
 
     <div class="table-responsive">
         <table class="table">

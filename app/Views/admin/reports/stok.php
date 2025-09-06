@@ -16,22 +16,27 @@
             </thead>
             <tbody>
                 <?php if (!empty($restok)): ?>
-        <?php foreach ($restok as $i => $r): ?>
-            <tr>
-                <td><?= $i + 1 ?></td>
-                <td><?= esc($r['nama_item']) ?></td>
-                <td><?= esc($r['jumlah']) ?></td>
-                <td><?= esc($r['tanggal']) ?></td>
-                <td><?= esc($r['restoker']) ?></td>
-            </tr>
-        <?php endforeach ?>
-    <?php else: ?>
+                    <?php foreach ($restok as $i => $r): ?>
+                        <tr>
+                            <td><?= $i + 1 ?></td>
+                            <td><?= esc($r['nama_item']) ?></td>
+                            <td><?= esc($r['jumlah']) ?></td>
+                            <td><?= esc($r['tanggal']) ?></td>
+                            <td><?= esc($r['restoker']) ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                <?php else: ?>
                     <tr>
                         <td colspan="5" class="text-center">Belum ada data restok</td>
                     </tr>
                 <?php endif ?>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center">
+            <?= $pager ?>
+        </div>
     </div>
 </div>
 
