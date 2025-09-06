@@ -9,4 +9,16 @@ class ItemModel extends Model
     protected $table = 'items';
     protected $primaryKey = 'id';
     protected $allowedFields = ['nama_item', 'harga', 'stok'];
+
+    /**
+     * Mengambil item yang stoknya di bawah batas tertentu.
+     * @param int $threshold Batas stok minimum.
+     * @return array
+     */
+    public function getLowStockItems(int $threshold = 10): array
+    {
+        return $this->where('stok <=', $threshold)
+                    ->orderBy('stok', 'ASC')
+                    ->findAll();
+    }
 }

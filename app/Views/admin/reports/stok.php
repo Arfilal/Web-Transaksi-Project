@@ -1,10 +1,11 @@
 <?= $this->extend('_layout') ?>
 <?= $this->section('content') ?>
 
-<div class="card">
-    <div class="card-body">
-        <h3 class="mb-3">📊 Laporan Stok</h3>
-        <table class="table table-striped table-hover">
+<h3 class="mb-3">📊 Laporan Stok</h3>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-dark table-striped table-hover">
             <thead>
                 <tr>
                     <th>No</th>
@@ -16,9 +17,15 @@
             </thead>
             <tbody>
                 <?php if (!empty($restok)): ?>
-                    <?php foreach ($restok as $i => $r): ?>
+                    <?php 
+                        // Menghitung nomor urut berdasarkan halaman saat ini
+                        $page = (int) (request()->getVar('page') ?? 1);
+                        $perPage = 10; // Sesuaikan dengan jumlah item per halaman Anda
+                        $no = 1 + ($perPage * ($page - 1));
+                    ?>
+                    <?php foreach ($restok as $r): ?>
                         <tr>
-                            <td><?= $i + 1 ?></td>
+                            <td><?= $no++ ?></td>
                             <td><?= esc($r['nama_item']) ?></td>
                             <td><?= esc($r['jumlah']) ?></td>
                             <td><?= esc($r['tanggal']) ?></td>
@@ -32,11 +39,10 @@
                 <?php endif ?>
             </tbody>
         </table>
+    </div>
 
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center">
-            <?= $pager ?>
-        </div>
+    <div class="d-flex justify-content-center mt-3">
+        <?= $pager ?>
     </div>
 </div>
 

@@ -4,6 +4,7 @@
 <h1 class="text-center mb-4">Menu Pembelian</h1>
 
 <form action="<?= base_url('konsumen/pembelian/add-selected') ?>" method="post">
+    <?= csrf_field() ?>
 
     <!-- Tombol pindah ke atas -->
     <div class="text-start mb-3">

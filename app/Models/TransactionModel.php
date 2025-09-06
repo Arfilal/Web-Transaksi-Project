@@ -17,33 +17,44 @@ class TransactionModel extends Model
         'xendit_invoice_id'
     ];
 
-    // Laporan Harian
-    public function getDailySales()
+    /**
+     * Mengambil total penjualan HARI INI yang statusnya 'paid'.
+     */
+    public function getTotalSalesToday(): float
+    {
+        $result = $this->selectSum('total_amount', 'total_sales')
+                       ->where('status', 'paid')
+                       ->where('DATE(transaction_date) = CURDATE()')
+                       ->get()
+                       ->getRow();
+
+        if ($result && $result->total_sales) {
+            return (float) $result->total_sales;
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Menghitung jumlah transaksi HARI INI yang statusnya 'paid'.
+     */
+    public function getNewTransactionsCount(): int
+    {
+        return $this->where('status', 'paid')
+                    ->where('DATE(transaction_date) = CURDATE()')
+                    ->countAllResults();
+    }
+
+    /**
+     * Mengambil data penjualan untuk grafik 7 hari terakhir yang statusnya 'paid'.
+     */
+    public function getDailySalesForLastWeek()
     {
         return $this->select("DATE(transaction_date) as date, SUM(total_amount) as total")
+                    ->where('status', 'paid')
+                    ->where('transaction_date >=', 'CURDATE() - INTERVAL 6 DAY', false)
                     ->groupBy("DATE(transaction_date)")
                     ->orderBy("date", "ASC")
                     ->findAll();
-    }
-
-    // Laporan Mingguan
-    public function getWeeklySales()
-    {
-        return $this->select("YEARWEEK(transaction_date, 1) as week, SUM(total_amount) as total")
-                    ->groupBy("YEARWEEK(transaction_date, 1)")
-                    ->orderBy("week", "ASC")
-                    ->findAll();
-    }
-
-    // Laporan per item (kalau ada tabel detail transaksi + items)
-    public function getItemSales()
-    {
-        return $this->db->table('transaction_details td')
-                    ->select("items.nama_item, SUM(td.quantity) as total_quantity")
-                    ->join("items", "items.id = td.item_id")
-                    ->groupBy("items.nama_item")
-                    ->orderBy("total_quantity", "DESC")
-                    ->get()
-                    ->getResultArray();
     }
 }

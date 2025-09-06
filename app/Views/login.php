@@ -17,6 +17,7 @@
         <?php endif; ?>
 
         <form action="<?= base_url('auth/login') ?>" method="post">
+            <?= csrf_field() ?> <!-- Tambahkan ini -->
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="text" name="email" id="email" class="form-control" required>

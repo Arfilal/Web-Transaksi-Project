@@ -111,7 +111,7 @@
         <div class="card">
             <h1>Pilih Peran Anda</h1>
             <div class="d-flex justify-content-center">
-                <a href="<?= base_url('admin/items') ?>" class="btn btn-purple">
+                <a href="<?= base_url('dashboard') ?>" class="btn btn-purple">
                     <i class="bi bi-speedometer2"></i> Admin
                 </a>
                 <a href="<?= base_url('konsumen/pembelian') ?>" class="btn btn-purple">

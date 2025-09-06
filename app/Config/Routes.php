@@ -10,6 +10,12 @@ $routes->get('/', function () {
 });
 
 // ======================
+// Rute untuk Webhook Xendit (ditempatkan di atas untuk prioritas)
+// ======================
+$routes->post('webhook/xendit', 'WebhookController::xendit');
+
+
+// ======================
 // Rute untuk Login & Logout
 // ======================
 $routes->get('login', 'AuthController::login');
@@ -122,3 +128,4 @@ $routes->group('konsumen', function ($routes) {
 // ======================
 $routes->get('transaksi/sukses', 'ConsumerController::sukses');
 $routes->get('transaksi/gagal', 'ConsumerController::gagal');
+
