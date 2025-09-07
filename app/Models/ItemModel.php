@@ -8,7 +8,7 @@ class ItemModel extends Model
 {
     protected $table = 'items';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['nama_item', 'harga', 'stok'];
+     protected $allowedFields = ['nama_item', 'harga', 'stok', 'category_id'];
 
     /**
      * Mengambil item yang stoknya di bawah batas tertentu.

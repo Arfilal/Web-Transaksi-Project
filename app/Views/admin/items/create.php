@@ -3,9 +3,18 @@
 <h1 class="text-center mb-4">Tambah Barang</h1>
 <div class="card p-4 mx-auto" style="max-width: 500px;">
     <form action="<?= base_url('admin/items/create') ?>" method="post">
-        <div class="mb-3">
+        <?= csrf_field() ?> <div class="mb-3">
             <label for="nama_item" class="form-label">Nama Barang:</label>
             <input type="text" class="form-control" id="nama_item" name="nama_item" required>
+        </div>
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Kategori:</label>
+            <select name="category_id" id="category_id" class="form-control">
+                <option value="">-- Pilih Kategori --</option>
+                <?php foreach($categories as $category): ?>
+                    <option value="<?= $category['id'] ?>"><?= esc($category['category_name']) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="mb-3">
             <label for="harga" class="form-label">Harga:</label>

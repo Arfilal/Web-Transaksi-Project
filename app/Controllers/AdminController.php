@@ -6,6 +6,7 @@ use App\Models\ItemModel;
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
 use App\Models\ReturnModel;
+use App\Models\CategoryModel; // TAMBAHKAN INI
 use CodeIgniter\Controller;
 use Dompdf\Dompdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -18,6 +19,7 @@ class AdminController extends Controller
     protected $transactionModel;
     protected $transactionDetailModel;
     protected $returnModel;
+    protected $categoryModel; // TAMBAHKAN INI
 
     public function __construct()
     {
@@ -25,38 +27,86 @@ class AdminController extends Controller
         $this->transactionModel = new TransactionModel();
         $this->transactionDetailModel = new TransactionDetailModel();
         $this->returnModel = new ReturnModel();
+        $this->categoryModel = new CategoryModel(); // TAMBAHKAN INI
     }
 
     // --- Menu Barang (CRUD) ---
     public function items()
 {
-    $data['items'] = $this->itemModel->paginate(10); // tampilkan 10 per halaman
-    $data['pager'] = $this->itemModel->pager;       // kirim pager ke view
-    return view('admin/items/index', $data);
+    // UBAH FUNGSI INI
+        $data['items'] = $this->itemModel
+            ->select('items.*, categories.category_name')
+            ->join('categories', 'categories.id = items.category_id', 'left')
+            ->paginate(10);
+        $data['pager'] = $this->itemModel->pager;
+        return view('admin/items/index', $data);
 }
 
 
     public function createItem()
     {
-        if ($this->request->getPost()) {
-            $data = $this->request->getPost();
-            if ($this->itemModel->insert($data)) {
+        // Siapkan data dasar
+        $data['categories'] = $this->categoryModel->findAll();
+
+        if ($this->request->getMethod() === 'post') {
+            // Aturan validasi
+            $rules = [
+                'nama_item' => 'required|min_length[3]',
+                'harga'     => 'required|numeric',
+                'stok'      => 'required|integer'
+            ];
+
+            if (!$this->validate($rules)) {
+                // Jika validasi gagal, kembalikan ke view dengan input lama dan error
+                // withInput() akan otomatis menyimpan input dan error ke session
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+
+            // Jika validasi berhasil
+            if ($this->itemModel->insert($this->request->getPost())) {
                 return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil ditambahkan.');
             } else {
                 return redirect()->back()->withInput()->with('error', 'Gagal menambahkan barang.');
             }
         }
-        return view('admin/items/create');
+
+        // Tampilkan form untuk request GET
+        return view('admin/items/create', $data);
     }
 
     public function editItem($id)
     {
-        if ($this->request->getMethod() === 'post') {
-            $data = $this->request->getPost();
-            $this->itemModel->update($id, $data);
-            return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
+        // Temukan item terlebih dahulu
+        $item = $this->itemModel->find($id);
+        if (!$item) {
+            return redirect()->to(base_url('admin/items'))->with('error', 'Barang tidak ditemukan.');
         }
-        $data['item'] = $this->itemModel->find($id);
+
+        if ($this->request->getMethod() === 'post') {
+            // Aturan validasi
+            $rules = [
+                'nama_item' => 'required|min_length[3]',
+                'harga'     => 'required|numeric',
+                'stok'      => 'required|integer'
+            ];
+
+            if (!$this->validate($rules)) {
+                // Jika validasi gagal, cara yang paling benar adalah redirect back with input.
+                // Ini akan me-refresh halaman beserta token CSRF-nya.
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+
+            // Jika validasi berhasil, update data
+            if ($this->itemModel->update($id, $this->request->getPost())) {
+                return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
+            } else {
+                return redirect()->back()->withInput()->with('error', 'Gagal mengupdate barang. Silakan coba lagi.');
+            }
+        }
+        
+        // Bagian untuk menampilkan form (GET request)
+        $data['item'] = $item;
+        $data['categories'] = $this->categoryModel->findAll();
         return view('admin/items/edit', $data);
     }
 
