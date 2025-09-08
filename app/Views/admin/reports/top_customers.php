@@ -16,13 +16,13 @@
                     <?php $no = 1; foreach ($top_customers as $customer): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= esc($customer['nama']) ?></td>
+                        <td><?= esc($customer['customer_name']) ?></td>
                         <td><?= esc($customer['total_transactions']) ?></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="3" class="text-center">Belum ada data transaksi dari pelanggan yang login.</td>
+                        <td colspan="3" class="text-center">Belum ada data transaksi dari pelanggan.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

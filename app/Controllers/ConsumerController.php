@@ -33,35 +33,35 @@ class ConsumerController extends Controller
 
     // --- Menu Pembelian ---
     public function index()
-{
-    $userId = $this->session->get('userId') ?? 'guest_' . session_id();
-    $this->session->set('userId', $userId);
+    {
+        $userId = $this->session->get('userId') ?? 'guest_' . session_id();
+        $this->session->set('userId', $userId);
 
-    // ✅ Pagination untuk daftar barang
-    $data['items'] = $this->itemModel->paginate(10, 'items');
-    $data['pager'] = $this->itemModel->pager;
+        // ✅ Pagination untuk daftar barang
+        $data['items'] = $this->itemModel->paginate(10, 'items');
+        $data['pager'] = $this->itemModel->pager;
 
-    // keranjang user
-    $cart = $this->cartModel->where('user_id', $userId)->first();
-    $data['cart_items'] = [];
-    $grandTotal = 0;
+        // keranjang user
+        $cart = $this->cartModel->where('user_id', $userId)->first();
+        $data['cart_items'] = [];
+        $grandTotal = 0;
 
-    if ($cart) {
-        $data['cart_items'] = $this->cartItemModel
-            ->select('cart_items.id as cart_item_id, cart_items.quantity, items.nama_item, items.harga')
-            ->join('items', 'items.id = cart_items.item_id')
-            ->where('cart_id', $cart['id'])
-            ->findAll();
+        if ($cart) {
+            $data['cart_items'] = $this->cartItemModel
+                ->select('cart_items.id as cart_item_id, cart_items.quantity, items.nama_item, items.harga')
+                ->join('items', 'items.id = cart_items.item_id')
+                ->where('cart_id', $cart['id'])
+                ->findAll();
 
-        foreach ($data['cart_items'] as $ci) {
-            $grandTotal += $ci['harga'] * $ci['quantity'];
+            foreach ($data['cart_items'] as $ci) {
+                $grandTotal += $ci['harga'] * $ci['quantity'];
+            }
         }
+
+        $data['grandTotal'] = $grandTotal;
+
+        return view('consumer/items/index', $data);
     }
-
-    $data['grandTotal'] = $grandTotal;
-
-    return view('consumer/items/index', $data);
-}
 
     public function addToCart($id)
     {
@@ -95,115 +95,144 @@ class ConsumerController extends Controller
         return redirect()->to(base_url('konsumen/pembelian'))->with('success', 'Barang berhasil ditambahkan ke keranjang!');
     }
 
-   public function checkout()
-{
-    $xenditApiKey = getenv('XENDIT_SECRET_KEY'); 
+   // Menampilkan halaman ringkasan checkout dan form data pelanggan
+    public function checkout()
+    {
+        $userId = $this->session->get('userId');
+        $cart = $this->cartModel->where('user_id', $userId)->first();
 
-    $userId = $this->session->get('userId');
-    $cart = $this->cartModel->where('user_id', $userId)->first();
-    
-    if (!$cart) {
-        return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
-    }
-
-    $cartItems = $this->cartItemModel
-        ->select('cart_items.*, items.harga, items.stok, items.nama_item')
-        ->join('items', 'items.id = cart_items.item_id')
-        ->where('cart_id', $cart['id'])
-        ->findAll();
-
-    if (empty($cartItems)) {
-        return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
-    }
-
-    $total = 0;
-    foreach ($cartItems as $item) {
-        // Validasi stok sekali lagi sebelum checkout
-        if ($item['quantity'] > $item['stok']) {
-            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Stok untuk barang '. $item['nama_item'] .' tidak mencukupi.');
+        if (!$cart) {
+            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
         }
-        $total += $item['harga'] * $item['quantity'];
+
+        $cartItems = $this->cartItemModel
+            ->select('cart_items.*, items.harga, items.stok, items.nama_item')
+            ->join('items', 'items.id = cart_items.item_id')
+            ->where('cart_id', $cart['id'])
+            ->findAll();
+
+        if (empty($cartItems)) {
+            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
+        }
+
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $total += $item['harga'] * $item['quantity'];
+        }
+
+        $data['cart_items'] = $cartItems;
+        $data['grandTotal'] = $total;
+
+        return view('consumer/checkout', $data);
     }
 
-    // 1. Simpan data transaksi ke database DULU dengan status 'pending'
-    $db = \Config\Database::connect();
-    $db->transStart();
+    // Memproses checkout setelah form diisi dan membuat invoice Xendit
+    public function processCheckout()
+    {
+        $xenditApiKey = getenv('XENDIT_SECRET_KEY');
 
-    $transactionCode = 'TRX-' . strtoupper(uniqid());
-    $this->transactionModel->insert([
-        'transaction_code' => $transactionCode,
-        'transaction_date' => date('Y-m-d H:i:s'),
-        'total_amount'     => $total,
-        'status'           => 'pending',
-    ]);
-    $transactionId = $this->transactionModel->getInsertID();
-
-    // 2. Simpan detail transaksi dan kurangi stok
-    foreach ($cartItems as $item) {
-        $this->transactionDetailModel->insert([
-            'transaction_id' => $transactionId,
-            'item_id'        => $item['item_id'],
-            'quantity'       => $item['quantity'],
-            'price'          => $item['harga'],
-        ]);
+        $userId = $this->session->get('userId');
+        $cart = $this->cartModel->where('user_id', $userId)->first();
         
-        // Pengurangan stok dipindahkan ke webhook setelah pembayaran berhasil
-        // $this->itemModel->where('id', $item['item_id'])->set('stok', 'stok - ' . $item['quantity'], false)->update();
-    }
+        if (!$cart) {
+            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
+        }
 
-    // 3. Buat invoice Xendit
-    $data = [
-        'external_id'          => $transactionCode, // Gunakan kode transaksi kita
-        'amount'               => $total,
-        'payer_email'          => 'test@example.com', // Nanti bisa diambil dari data user yg login
-        'description'          => 'Pembelian Produk - ' . $transactionCode,
-        'success_redirect_url' => base_url('transaksi/sukses'),
-        'failure_redirect_url' => base_url('transaksi/gagal'),
-    ];
+        $cartItems = $this->cartItemModel
+            ->select('cart_items.*, items.harga, items.stok, items.nama_item')
+            ->join('items', 'items.id = cart_items.item_id')
+            ->where('cart_id', $cart['id'])
+            ->findAll();
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://api.xendit.co/v2/invoices');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_USERPWD, $xenditApiKey . ':');
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-    $result = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        if (empty($cartItems)) {
+            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Keranjang Anda kosong.');
+        }
 
-    $response = json_decode($result, true);
-    
-    // Jika invoice berhasil dibuat
-    if (isset($response['invoice_url'])) {
-        // Update invoice ID dari Xendit di tabel transaksi kita
-        $this->transactionModel->update($transactionId, [
-            'xendit_invoice_id' => $response['id']
+        $total = 0;
+        foreach ($cartItems as $item) {
+            if ($item['quantity'] > $item['stok']) {
+                return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Stok untuk barang '. $item['nama_item'] .' tidak mencukupi.');
+            }
+            $total += $item['harga'] * $item['quantity'];
+        }
+
+        // Ambil data pelanggan dari form
+        $customerName = $this->request->getPost('customer_name');
+        $customerPhone = $this->request->getPost('customer_phone');
+
+        if (empty($customerName)) {
+            return redirect()->back()->withInput()->with('error', 'Nama pelanggan wajib diisi.');
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $transactionCode = 'TRX-' . strtoupper(uniqid());
+        $this->transactionModel->insert([
+            'transaction_code' => $transactionCode,
+            'customer_name'    => $customerName,
+            'customer_phone'   => $customerPhone,
+            'transaction_date' => date('Y-m-d H:i:s'),
+            'total_amount'     => $total,
+            'status'           => 'pending',
         ]);
+        $transactionId = $this->transactionModel->getInsertID();
 
-        // Selesaikan transaksi database
-        $db->transComplete();
+        foreach ($cartItems as $item) {
+            $this->transactionDetailModel->insert([
+                'transaction_id' => $transactionId,
+                'item_id'        => $item['item_id'],
+                'quantity'       => $item['quantity'],
+                'price'          => $item['harga'],
+            ]);
+        }
 
-        // Kosongkan keranjang
-        $this->cartItemModel->where('cart_id', $cart['id'])->delete();
+        $data = [
+            'external_id'          => $transactionCode,
+            'amount'               => $total,
+            'payer_email'          => 'customer@example.com', // Email generik
+            'description'          => 'Pembelian a.n. ' . $customerName,
+            'success_redirect_url' => base_url('transaksi/sukses'),
+            'failure_redirect_url' => base_url('transaksi/gagal'),
+        ];
 
-        return redirect()->to($response['invoice_url']);
-    } else {
-        // Jika gagal, batalkan semua operasi database
-        $db->transRollback();
-        log_message('error', 'Xendit Invoice Error: ' . $result);
-        return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Gagal membuat pembayaran. Silakan coba lagi. (Code: '.$httpcode.')');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.xendit.co/v2/invoices');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_USERPWD, $xenditApiKey . ':');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $result = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $response = json_decode($result, true);
+        
+        if (isset($response['invoice_url'])) {
+            $this->transactionModel->update($transactionId, [
+                'xendit_invoice_id' => $response['id']
+            ]);
+
+            $db->transComplete();
+            $this->cartItemModel->where('cart_id', $cart['id'])->delete();
+
+            return redirect()->to($response['invoice_url']);
+        } else {
+            $db->transRollback();
+            log_message('error', 'Xendit Invoice Error: ' . $result);
+            return redirect()->to(base_url('konsumen/pembelian'))->with('error', 'Gagal membuat pembayaran. Silakan coba lagi. (Code: '.$httpcode.')');
+        }
     }
-}
 
 
     // --- Metode lain tetap sama ---
     public function history()
-{
-    $data['transactions'] = $this->transactionModel->paginate(10, 'transactions');
-    $data['pager'] = $this->transactionModel->pager;
-    return view('consumer/history/index', $data);
-}
+    {
+        $data['transactions'] = $this->transactionModel->paginate(10, 'transactions');
+        $data['pager'] = $this->transactionModel->pager;
+        return view('consumer/history/index', $data);
+    }
 
 
     public function historyDetail($id)
@@ -249,46 +278,6 @@ class ConsumerController extends Controller
         ]);
         return redirect()->to(base_url('konsumen/pengembalian'))->with('success', 'Permintaan retur berhasil diajukan. Status akan diperbarui oleh admin.');
     }
-
-    public function webhook()
-    {
-        $callbackToken = $this->request->getHeaderLine('X-CALLBACK-TOKEN');
-        $expectedToken = getenv('XENDIT_CALLBACK_TOKEN');
-
-        // Validasi token callback dari Xendit
-        if ($callbackToken !== $expectedToken) {
-            log_message('error', 'Invalid callback token from Xendit');
-            return $this->failUnauthorized('Invalid callback token');
-        }
-
-        $payload = $this->request->getJSON(true);
-
-        if (!$payload || !isset($payload['id']) || !isset($payload['status'])) {
-            log_message('error', 'Invalid callback payload: ' . json_encode($payload));
-            return $this->fail('Invalid payload', 400);
-        }
-
-        $xenditInvoiceId = $payload['id'];
-        $status = $payload['status'];
-
-        $transactionModel = new TransactionModel();
-        $transaction = $transactionModel->where('xendit_invoice_id', $xenditInvoiceId)->first();
-
-        if (!$transaction) {
-            log_message('error', 'Transaction not found for invoice: ' . $xenditInvoiceId);
-            return $this->failNotFound('Transaction not found');
-        }
-
-        // Update status transaksi
-        $transactionModel->update($transaction['id'], [
-            'status' => $status
-        ]);
-
-        log_message('info', 'Transaction ' . $transaction['id'] . ' updated to status ' . $status);
-
-        return $this->respond(['message' => 'Callback processed successfully']);
-    }
-
 
 public function sukses()
 {

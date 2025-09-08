@@ -116,7 +116,7 @@ $routes->group('konsumen', function ($routes) {
     
     // Checkout
     $routes->get('pembelian/checkout', 'ConsumerController::checkout');
-    $routes->post('pembelian/checkout', 'ConsumerController::checkout');
+    $routes->post('pembelian/proses-checkout', 'ConsumerController::processCheckout');
 
     // ✅ Hapus item dari keranjang
     $routes->get('pembelian/remove/(:num)', 'ConsumerController::remove/$1');
