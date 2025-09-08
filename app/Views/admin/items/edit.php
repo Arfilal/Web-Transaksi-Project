@@ -20,10 +20,13 @@
             <label for="nama_item" class="form-label">Nama Barang:</label>
             <input type="text" class="form-control" id="nama_item" name="nama_item" value="<?= old('nama_item', $item['nama_item']) ?>" required>
         </div>
-        <!-- HAPUS INPUT KATEGORI -->
         <div class="mb-3">
-            <label for="harga" class="form-label">Harga:</label>
+            <label for="harga" class="form-label">Harga Jual:</label>
             <input type="number" class="form-control" id="harga" name="harga" value="<?= old('harga', $item['harga']) ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="harga_beli" class="form-label">Harga Beli:</label>
+            <input type="number" class="form-control" id="harga_beli" name="harga_beli" value="<?= old('harga_beli', $item['harga_beli']) ?>" required>
         </div>
         <div class="mb-3">
             <label for="stok" class="form-label">Stok:</label>

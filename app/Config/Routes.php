@@ -44,9 +44,7 @@ $routes->group('admin', function ($routes) {
     $routes->get('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->post('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->get('items/delete/(:num)', 'AdminController::deleteItem/$1');
-    
-    // HAPUS SEMUA RUTE CATEGORIES
-    
+
     // Impor Barang
     $routes->get('items/import', 'AdminController::showImportForm');
     $routes->post('items/import', 'AdminController::importExcel');
@@ -58,7 +56,7 @@ $routes->group('admin', function ($routes) {
     // Pengembalian
     $routes->get('returns', 'AdminController::returns');
     $routes->get('returns/update-status/(:num)', 'AdminController::updateReturnStatus/$1');
-    
+
     // Laporan
     $routes->get('reports', 'AdminController::report');
     $routes->get('reports/export-pdf', 'AdminController::exportPdf');
@@ -68,6 +66,12 @@ $routes->group('admin', function ($routes) {
     $routes->get('reports/transaksi', 'AdminController::reportTransaksi');
     $routes->get('reports/pengembalian', 'AdminController::reportPengembalian');
     $routes->get('reports/stok', 'AdminController::reportStok');
+    
+    // Rute Laporan Baru
+    $routes->get('reports/profit-loss', 'AdminController::reportProfitLoss');
+    $routes->get('reports/best-selling-products', 'AdminController::reportBestSellingProducts');
+    $routes->get('reports/top-customers', 'AdminController::reportTopCustomers');
+
 
     // ✅ CRUD Restok
     $routes->group('restok', function($routes) {

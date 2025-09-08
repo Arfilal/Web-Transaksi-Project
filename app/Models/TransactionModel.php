@@ -9,6 +9,7 @@ class TransactionModel extends Model
     protected $table = 'transactions';
     protected $primaryKey = 'id';
     protected $allowedFields = [
+        'user_id',
         'transaction_code',
         'transaction_date',
         'total_amount',
@@ -56,5 +57,26 @@ class TransactionModel extends Model
                     ->groupBy("DATE(transaction_date)")
                     ->orderBy("date", "ASC")
                     ->findAll();
+    }
+
+    public function getBestSellingProducts($limit = 5)
+    {
+        return $this->db->table('transaction_details')
+            ->select('items.nama_item, SUM(transaction_details.quantity) as total_quantity')
+            ->join('items', 'items.id = transaction_details.item_id')
+            ->groupBy('items.nama_item')
+            ->orderBy('total_quantity', 'DESC')
+            ->limit($limit)
+            ->get()->getResultArray();
+    }
+
+    public function getTopCustomers($limit = 5)
+    {
+        return $this->select('users.nama, COUNT(transactions.id) as total_transactions')
+            ->join('users', 'users.id = transactions.user_id')
+            ->groupBy('users.nama')
+            ->orderBy('total_transactions', 'DESC')
+            ->limit($limit)
+            ->get()->getResultArray();
     }
 }

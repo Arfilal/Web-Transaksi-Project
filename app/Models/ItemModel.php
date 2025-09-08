@@ -9,7 +9,7 @@ class ItemModel extends Model
     protected $table = 'items';
     protected $primaryKey = 'id';
     // Hapus 'category_id' dari allowedFields
-    protected $allowedFields = ['nama_item', 'harga', 'stok'];
+    protected $allowedFields = ['nama_item', 'harga', 'harga_beli', 'stok'];
 
     /**
      * Mengambil item yang stoknya di bawah batas tertentu.

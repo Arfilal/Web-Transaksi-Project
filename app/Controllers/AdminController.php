@@ -268,6 +268,29 @@ public function reportStok()
     return view('admin/reports/stok', $data);
 }
 
+public function reportProfitLoss()
+{
+    $db = \Config\Database::connect();
+    $builder = $db->table('transaction_details td');
+    $builder->select('t.transaction_code, t.transaction_date, i.nama_item, td.quantity, td.price, i.harga_beli, (td.price - i.harga_beli) * td.quantity as profit');
+    $builder->join('transactions t', 't.id = td.transaction_id');
+    $builder->join('items i', 'i.id = td.item_id');
+    $builder->where('t.status', 'paid');
+    $data['profits'] = $builder->get()->getResultArray();
 
+    return view('admin/reports/profit_loss', $data);
+}
+
+public function reportBestSellingProducts()
+{
+    $data['best_selling'] = $this->transactionModel->getBestSellingProducts();
+    return view('admin/reports/best_selling_products', $data);
+}
+
+public function reportTopCustomers()
+{
+    $data['top_customers'] = $this->transactionModel->getTopCustomers();
+    return view('admin/reports/top_customers', $data);
+}
 
 }

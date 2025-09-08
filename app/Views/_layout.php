@@ -139,6 +139,9 @@
                 <a href="<?= base_url('admin/reports/stok') ?>" class="ps-4 d-block">Laporan Stok</a>
                 <a href="<?= base_url('admin/reports/transaksi') ?>" class="ps-4 d-block">Laporan Transaksi</a>
                 <a href="<?= base_url('admin/reports/pengembalian') ?>" class="ps-4 d-block">Laporan Pengembalian</a>
+                <a href="<?= base_url('admin/reports/profit-loss') ?>" class="ps-4 d-block">Laporan Laba/Rugi</a>
+                <a href="<?= base_url('admin/reports/best-selling-products') ?>" class="ps-4 d-block">Produk Terlaris</a>
+                <a href="<?= base_url('admin/reports/top-customers') ?>" class="ps-4 d-block">Pelanggan Terbaik</a>
             </div>
         </div>
     <?php else: ?>
