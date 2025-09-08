@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pembayaran Berhasil</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 <body class="bg-light d-flex justify-content-center align-items-center vh-100">
 
@@ -17,9 +18,17 @@
         <h3 class="fw-bold text-success">Pembayaran Berhasil 🎉</h3>
         <p class="text-muted">Terima kasih, transaksi Anda sudah diproses dengan sukses.</p>
         
-        <a href="<?= base_url('konsumen/pembelian') ?>" class="btn btn-success w-100 mt-3">
-            Kembali ke Beranda
-        </a>
+        <div class="d-grid gap-2">
+            <?php if (isset($transaction_id)): ?>
+                <a href="<?= base_url('transaksi/struk/' . $transaction_id) ?>" target="_blank" class="btn btn-primary">
+                    <i class="bi bi-printer"></i> Cetak Struk
+                </a>
+            <?php endif; ?>
+            
+            <a href="<?= base_url('konsumen/pembelian') ?>" class="btn btn-success">
+                Kembali ke Beranda
+            </a>
+        </div>
     </div>
 
 </body>

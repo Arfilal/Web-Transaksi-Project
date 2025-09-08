@@ -85,7 +85,7 @@
     </table>
     <div class="text-end mt-3">
         <h4>Grand Total: Rp<?= number_format($grandTotal) ?></h4>
-        <a href="<?= base_url('konsumen/pembelian/checkout') ?>" class="btn btn-primary">
+        <a href="<?= base_url('konsumen/checkout') ?>" class="btn btn-primary">
             Proses Pembelian
         </a>
     </div>
