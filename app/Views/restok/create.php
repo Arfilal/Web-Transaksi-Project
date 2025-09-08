@@ -7,6 +7,7 @@
     </div>
     <div class="card-body">
         <form action="<?= base_url('admin/restok/store') ?>" method="post">
+             <?= csrf_field() ?> 
             <div class="mb-3">
                 <label for="id_item" class="form-label">Item</label>
                 <select name="id_item" id="id_item" class="form-control" required>

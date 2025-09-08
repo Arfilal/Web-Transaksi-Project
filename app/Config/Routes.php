@@ -45,13 +45,7 @@ $routes->group('admin', function ($routes) {
     $routes->post('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->get('items/delete/(:num)', 'AdminController::deleteItem/$1');
     
-    // CRUD Categories
-    $routes->get('categories', 'Admin\CategoryController::index');
-    $routes->get('categories/create', 'Admin\CategoryController::create');
-    $routes->post('categories/store', 'Admin\CategoryController::store');
-    $routes->get('categories/edit/(:num)', 'Admin\CategoryController::edit/$1');
-    $routes->post('categories/update/(:num)', 'Admin\CategoryController::update/$1');
-    $routes->get('categories/delete/(:num)', 'Admin\CategoryController::delete/$1');
+    // HAPUS SEMUA RUTE CATEGORIES
     
     // Impor Barang
     $routes->get('items/import', 'AdminController::showImportForm');

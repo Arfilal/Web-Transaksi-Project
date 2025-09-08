@@ -18,7 +18,8 @@
                 <thead>
                     <tr>
                         <th>Nama Barang</th>
-                        <th>Kategori</th> <th>Harga</th>
+                        <!-- HAPUS KOLOM KATEGORI -->
+                        <th>Harga</th>
                         <th>Stok</th>
                         <th>Aksi</th>
                     </tr>
@@ -28,7 +29,8 @@
         <?php foreach($items as $item): ?>
             <tr>
                 <td><?= esc($item['nama_item']) ?></td>
-                <td><span class="badge bg-secondary"><?= esc($item['category_name'] ?? 'Tanpa Kategori') ?></span></td> <td><?= number_format($item['harga'], 0, ',', '.') ?></td>
+                <!-- HAPUS KOLOM KATEGORI -->
+                <td><?= number_format($item['harga'], 0, ',', '.') ?></td>
                 <td><?= esc($item['stok']) ?></td>
                <td>
     <a href="<?= base_url('admin/items/edit/'.$item['id']) ?>" class="btn btn-warning btn-sm">
@@ -42,7 +44,7 @@
         <?php endforeach; ?>
     <?php else : ?>
         <tr>
-            <td colspan="5" class="text-center">Belum ada data barang</td> </tr>
+            <td colspan="4" class="text-center">Belum ada data barang</td> </tr> <!-- Ubah colspan jadi 4 -->
     <?php endif; ?>
 </tbody>
             </table>

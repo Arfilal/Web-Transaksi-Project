@@ -118,9 +118,7 @@
         <a href="<?= base_url('admin/items') ?>" class="nav-link <?= (strpos(uri_string(), 'admin/items') !== false) ? 'active' : '' ?>">
             <i class="bi bi-box-seam"></i> Manajemen Barang
         </a>
-        <a href="<?= base_url('admin/categories') ?>" class="nav-link <?= (strpos(uri_string(), 'admin/categories') !== false) ? 'active' : '' ?>">
-            <i class="bi bi-tags-fill"></i> Manajemen Kategori
-        </a>
+        <!-- HAPUS MENU MANAJEMEN KATEGORI -->
         <div class="mb-2">
             <a class="d-flex justify-content-between align-items-center <?= (strpos(uri_string(), 'admin/restok') !== false || strpos(uri_string(), 'admin/restoker') !== false) ? 'active' : '' ?>" 
                data-bs-toggle="collapse" href="#stokDropdown" role="button">
