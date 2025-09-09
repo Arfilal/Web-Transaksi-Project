@@ -6,7 +6,6 @@
 <form action="<?= base_url('konsumen/pembelian/add-selected') ?>" method="post">
     <?= csrf_field() ?>
 
-    <!-- Tombol pindah ke atas -->
     <div class="text-start mb-3">
         <button type="submit" class="btn btn-success">
             <i class="bi bi-cart-plus"></i> Tambah ke Keranjang
@@ -42,10 +41,12 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
 </form>
 
-<!-- Keranjang Belanja -->
+<div class="d-flex justify-content-center mt-3">
+    <?= $pager->links() ?>
+</div>
+
 <h2 class="text-center mb-4">Keranjang Belanja</h2>
 <div class="p-4 bg-dark text-white rounded">
     <table class="table table-dark table-hover text-center">

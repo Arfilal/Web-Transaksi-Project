@@ -10,6 +10,7 @@
     </ul>
     
     <form action="<?= base_url('admin/items/import') ?>" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
         <div class="mb-3">
             <label for="excel_file" class="form-label">Pilih File Excel:</label>
             <input type="file" class="form-control" id="excel_file" name="excel_file" required>

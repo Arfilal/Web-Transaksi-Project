@@ -52,16 +52,33 @@ class AdminController extends Controller
         return view('admin/items/create');
     }
 
-    public function editItem($id)
-    {
-        if ($this->request->getMethod() === 'post') {
-            $data = $this->request->getPost();
-            $this->itemModel->update($id, $data);
-            return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
+    // File: app/Controllers/AdminController.php
+
+public function editItem($id)
+{
+    if ($this->request->getMethod() === 'post') {
+        // Baris ini akan menampilkan data dari form.
+        // Hapus baris ini setelah Anda selesai melakukan debugging.
+        dd($this->request->getPost()); 
+
+        $rules = [
+            'nama_item'  => 'required',
+            'harga'      => 'required|numeric|greater_than_equal_to[0]',
+            'harga_beli' => 'required|numeric|greater_than_equal_to[0]',
+            'stok'       => 'required|numeric|greater_than_equal_to[0]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-        $data['item'] = $this->itemModel->find($id);
-        return view('admin/items/edit', $data);
+
+        $data = $this->request->getPost();
+        $this->itemModel->update($id, $data);
+        return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
     }
+    $data['item'] = $this->itemModel->find($id);
+    return view('admin/items/edit', $data);
+}
 
     public function deleteItem($id)
     {
@@ -229,18 +246,19 @@ class AdminController extends Controller
     }
 
     public function reportPengembalian()
-    {
-        $data['pengembalian'] = $this->returnModel
-            ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
-            ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
-            ->join('items', 'items.id = td.item_id', 'left')
-            ->join('transactions', 'transactions.id = td.transaction_id', 'left')
-            ->paginate(10); // pagination juga
+{
+    $data['pengembalian'] = $this->returnModel
+        ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
+        ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
+        ->join('items', 'items.id = td.item_id', 'left')
+        ->join('transactions', 'transactions.id = td.transaction_id', 'left')
+        ->orderBy('returns.return_date', 'DESC')
+        ->paginate(10, 'pengembalian');
 
-        $data['pager'] = $this->returnModel->pager; // kirim pager ke view
+    $data['pager'] = $this->returnModel->pager;
 
-        return view('admin/reports/pengembalian', $data);
-    }
+    return view('admin/reports/pengembalian', $data);
+}
 
     public function reportStok()
     {

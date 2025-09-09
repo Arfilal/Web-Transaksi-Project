@@ -7,6 +7,7 @@
     <p><strong>Jumlah:</strong> <?= $transaction_detail['quantity'] ?></p>
 
     <form action="<?= base_url('konsumen/retur/create') ?>" method="post">
+        <?= csrf_field() ?>
         <input type="hidden" name="transaction_detail_id" value="<?= $transaction_detail['id'] ?>">
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading">Informasi Penting!</h4>

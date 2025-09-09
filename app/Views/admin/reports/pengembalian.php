@@ -12,6 +12,7 @@
                     <th>Jumlah</th>
                     <th>Tanggal Return</th>
                     <th>Status</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,12 +23,21 @@
                         <td><?= $p['nama_item'] ?></td>
                         <td><?= $p['quantity'] ?></td>
                         <td><?= $p['return_date'] ?></td>
-                        <td><span class="badge bg-success"><?= $p['status'] ?></span></td>
+                        <td>
+                            <?php if ($p['status'] === 'diproses'): ?>
+                                <a href="<?= base_url('admin/returns/update-status/' . $p['id']) ?>" class="badge bg-danger" onclick="return confirm('Apakah Anda yakin ingin menyelesaikan pengembalian ini?')">
+                                    <?= $p['status'] ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="badge bg-success"><?= $p['status'] ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center">Belum ada data pengembalian</td>
+                        <td colspan="6" class="text-center">Belum ada data pengembalian</td>
                     </tr>
                 <?php endif ?>
             </tbody>

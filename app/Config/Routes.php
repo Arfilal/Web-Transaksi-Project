@@ -96,8 +96,8 @@ $routes->group('admin', function ($routes) {
     // ✅ CRUD Restoker
     $routes->group('restoker', function($routes) {
         $routes->get('/', 'RestokerController::index');
-        $routes->get('create', 'RestokController::create');
-        $routes->post('store', 'RestokController::store');
+        $routes->get('create', 'RestokerController::create');
+        $routes->post('store', 'RestokerController::store');
         $routes->get('edit/(:num)', 'RestokerController::edit/$1');
         $routes->post('update/(:num)', 'RestokerController::update/$1');
         $routes->post('delete/(:num)', 'RestokerController::delete/$1');
