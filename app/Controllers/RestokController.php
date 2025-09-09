@@ -7,9 +7,13 @@ use App\Models\RestokerModel;
 use App\Models\ItemModel;
 use App\Models\TransactionModel;
 use App\Models\ReturnModel;
+use App\Models\UserModel; // Tambahkan import UserModel
 use CodeIgniter\Controller;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Google_Client;
+use Google_Service_Drive;
+use Google_Service_Drive_DriveFile;
 
 class RestokController extends Controller
 {
@@ -18,6 +22,7 @@ class RestokController extends Controller
     protected $itemModel;
     protected $transactionModel;
     protected $returnModel;
+    protected $userModel; // Deklarasikan UserModel
 
     public function __construct()
     {
@@ -26,6 +31,56 @@ class RestokController extends Controller
         $this->itemModel        = new ItemModel();
         $this->transactionModel = new TransactionModel();
         $this->returnModel      = new ReturnModel();
+        $this->userModel        = new UserModel(); // Inisialisasi UserModel
+    }
+
+    // --- FUNGSI BARU UNTUK MENGUNGGAH KE GOOGLE DRIVE ---
+    private function uploadToGoogleDrive(string $filePath, string $mimeType, string $fileName)
+    {
+        $session = session();
+        $user = $session->get('user');
+
+        if (empty($user) || empty($user['id'])) {
+            return false;
+        }
+
+        $userData = $this->userModel->find($user['id']);
+
+        if (empty($userData['google_refresh_token'])) {
+            return false;
+        }
+
+        $client = new Google_Client();
+        $client->setClientId(getenv('GOOGLE_CLIENT_ID'));
+        $client->setClientSecret(getenv('GOOGLE_CLIENT_SECRET'));
+
+        $client->fetchAccessTokenWithRefreshToken($userData['google_refresh_token']);
+
+        if ($client->getAccessToken()) {
+            $service = new Google_Service_Drive($client);
+            $file = new Google_Service_Drive_DriveFile();
+            $file->setName($fileName);
+            $file->setMimeType($mimeType);
+
+            $data = file_get_contents($filePath);
+
+            try {
+                $createdFile = $service->files->create($file, [
+                    'data'       => $data,
+                    'mimeType'   => $mimeType,
+                    'uploadType' => 'multipart',
+                ]);
+
+                unlink($filePath);
+
+                return $createdFile->id;
+            } catch (\Exception $e) {
+                log_message('error', 'Gagal mengunggah ke Google Drive: ' . $e->getMessage());
+                return false;
+            }
+        }
+
+        return false;
     }
 
     // List Restok (pagination)
@@ -213,11 +268,20 @@ class RestokController extends Controller
         }
 
         $writer = new Xlsx($spreadsheet);
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="history_restok.xlsx"');
-        header('Cache-Control: max-age=0');
-        $writer->save('php://output');
-        exit;
+        $fileName = 'history_restok_' . date('Ymd_His') . '.xlsx';
+        $filePath = WRITEPATH . 'uploads/' . $fileName;
+        $writer->save($filePath);
+
+        // Unggah ke Google Drive
+        $fileId = $this->uploadToGoogleDrive($filePath, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', $fileName);
+
+        if ($fileId) {
+            session()->setFlashdata('success', 'Laporan histori restok berhasil diunggah ke Google Drive! <a href="https://drive.google.com/file/d/'.$fileId.'/view" target="_blank">Lihat di sini</a>');
+        } else {
+            session()->setFlashdata('error', 'Gagal mengunggah laporan histori restok ke Google Drive.');
+        }
+
+        return redirect()->to(base_url('admin/restok/history'));
     }
 
     // ========= REPORTS =========
