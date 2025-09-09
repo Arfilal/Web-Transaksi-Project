@@ -37,6 +37,16 @@ $routes->get('dashboard', 'DashboardController::index');
 // Rute untuk Admin
 // ======================
 $routes->group('admin', function ($routes) {
+    // ✅ Rute untuk Manajemen Kategori
+    $routes->group('categories', function($routes) {
+        $routes->get('/', 'CategoryController::index');
+        $routes->get('create', 'CategoryController::create');
+        $routes->post('store', 'CategoryController::store');
+        $routes->get('edit/(:num)', 'CategoryController::edit/$1');
+        $routes->post('update/(:num)', 'CategoryController::update/$1');
+        $routes->get('delete/(:num)', 'CategoryController::delete/$1');
+    });
+
     // CRUD Items
     $routes->get('items', 'AdminController::items');
     $routes->get('items/create', 'AdminController::createItem');

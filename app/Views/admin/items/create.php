@@ -9,6 +9,14 @@
             <input type="text" class="form-control" id="nama_item" name="nama_item" required>
         </div>
         <div class="mb-3">
+            <label for="category_id" class="form-label">Kategori:</label>
+            <select name="category_id" id="category_id" class="form-control" required>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?= $category['id'] ?>"><?= esc($category['nama_kategori']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="mb-3">
             <label for="harga" class="form-label">Harga Jual:</label>
             <input type="number" class="form-control" id="harga" name="harga" required>
         </div>

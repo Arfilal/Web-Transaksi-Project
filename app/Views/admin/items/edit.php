@@ -12,13 +12,23 @@
             </ul>
         </div>
     <?php endif ?>
-
+    
     <form action="<?= base_url('admin/items/edit/' . $item['id']) ?>" method="post">
         <?= csrf_field() ?>
-
+        
         <div class="mb-3">
             <label for="nama_item" class="form-label">Nama Barang:</label>
             <input type="text" class="form-control" id="nama_item" name="nama_item" value="<?= old('nama_item', $item['nama_item']) ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Kategori:</label>
+            <select name="category_id" id="category_id" class="form-control" required>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?= $category['id'] ?>" <?= ($category['id'] == $item['category_id']) ? 'selected' : '' ?>>
+                        <?= esc($category['nama_kategori']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="mb-3">
             <label for="harga" class="form-label">Harga Jual:</label>

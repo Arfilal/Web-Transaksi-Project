@@ -3,10 +3,11 @@
 namespace App\Controllers;
 
 use App\Models\ItemModel;
+use App\Models\CategoryModel;
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
 use App\Models\ReturnModel;
-use App\Models\CustomerModel; // Import model Customer
+use App\Models\CustomerModel;
 use CodeIgniter\Controller;
 use Dompdf\Dompdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -16,28 +17,33 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class AdminController extends Controller
 {
     protected $itemModel;
+    protected $categoryModel;
     protected $transactionModel;
     protected $transactionDetailModel;
     protected $returnModel;
-    protected $customerModel; // Deklarasi model Customer
+    protected $customerModel;
 
     public function __construct()
     {
         $this->itemModel = new ItemModel();
+        $this->categoryModel = new CategoryModel();
         $this->transactionModel = new TransactionModel();
         $this->transactionDetailModel = new TransactionDetailModel();
         $this->returnModel = new ReturnModel();
-        $this->customerModel = new CustomerModel(); // Inisialisasi model Customer
+        $this->customerModel = new CustomerModel();
     }
 
     // --- Menu Barang (CRUD) ---
     public function items()
     {
-        $data['items'] = $this->itemModel->paginate(10); // tampilkan 10 per halaman
-        $data['pager'] = $this->itemModel->pager;       // kirim pager ke view
+        // Perbarui query untuk JOIN ke tabel categories
+        $data['items'] = $this->itemModel
+            ->select('items.*, categories.nama_kategori')
+            ->join('categories', 'categories.id = items.category_id', 'left')
+            ->paginate(10);
+        $data['pager'] = $this->itemModel->pager;
         return view('admin/items/index', $data);
     }
-
 
     public function createItem()
     {
@@ -49,36 +55,34 @@ class AdminController extends Controller
                 return redirect()->back()->withInput()->with('error', 'Gagal menambahkan barang.');
             }
         }
-        return view('admin/items/create');
+        $data['categories'] = $this->categoryModel->findAll();
+        return view('admin/items/create', $data);
     }
 
-    // File: app/Controllers/AdminController.php
-
-public function editItem($id)
-{
-    if ($this->request->getMethod() === 'post') {
-        // Baris ini akan menampilkan data dari form.
-        // Hapus baris ini setelah Anda selesai melakukan debugging.
-        dd($this->request->getPost()); 
-
-        $rules = [
-            'nama_item'  => 'required',
-            'harga'      => 'required|numeric|greater_than_equal_to[0]',
-            'harga_beli' => 'required|numeric|greater_than_equal_to[0]',
-            'stok'       => 'required|numeric|greater_than_equal_to[0]',
-        ];
-
-        if (! $this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+    public function editItem($id)
+    {
+        if ($this->request->getMethod() === 'post') {
+            $rules = [
+                'nama_item'  => 'required',
+                'harga'      => 'required|numeric|greater_than_equal_to[0]',
+                'harga_beli' => 'required|numeric|greater_than_equal_to[0]',
+                'stok'       => 'required|numeric|greater_than_equal_to[0]',
+                'category_id' => 'required|integer',
+            ];
+            
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+    
+            $data = $this->request->getPost();
+            $this->itemModel->update($id, $data);
+            return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
         }
 
-        $data = $this->request->getPost();
-        $this->itemModel->update($id, $data);
-        return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
+        $data['item'] = $this->itemModel->find($id);
+        $data['categories'] = $this->categoryModel->findAll();
+        return view('admin/items/edit', $data);
     }
-    $data['item'] = $this->itemModel->find($id);
-    return view('admin/items/edit', $data);
-}
 
     public function deleteItem($id)
     {
@@ -105,14 +109,13 @@ public function editItem($id)
         }
 
         try {
-            // Pakai PhpSpreadsheet
             $reader = IOFactory::createReaderForFile($file->getTempName());
             $spreadsheet = $reader->load($file->getTempName());
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $importedCount = 0;
             foreach ($sheetData as $key => $row) {
-                if ($key === 1) { // Lewati header baris pertama
+                if ($key === 1) {
                     continue;
                 }
 
@@ -178,7 +181,6 @@ public function editItem($id)
 
     public function report()
     {
-        // Ambil data dari Model
         $data['daily_sales'] = $this->transactionModel->getDailySales();
         $data['weekly_sales'] = $this->transactionModel->getWeeklySales();
         $data['item_sales'] = $this->transactionDetailModel
@@ -187,7 +189,6 @@ public function editItem($id)
                                      ->groupBy('items.nama_item')
                                      ->findAll();
 
-        // Siapkan data untuk ChartJS
         $data['daily_labels'] = array_column($data['daily_sales'], 'date');
         $data['daily_data']   = array_column($data['daily_sales'], 'total');
 
@@ -238,27 +239,27 @@ public function editItem($id)
     {
         $data['transaksi'] = $this->transactionModel
             ->select('transactions.*')
-            ->paginate(10); // tampilkan 10 data per halaman
+            ->paginate(10);
 
-        $data['pager'] = $this->transactionModel->pager; // kirim pager ke view
+        $data['pager'] = $this->transactionModel->pager;
 
         return view('admin/reports/transaksi', $data);
     }
 
     public function reportPengembalian()
-{
-    $data['pengembalian'] = $this->returnModel
-        ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
-        ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
-        ->join('items', 'items.id = td.item_id', 'left')
-        ->join('transactions', 'transactions.id = td.transaction_id', 'left')
-        ->orderBy('returns.return_date', 'DESC')
-        ->paginate(10, 'pengembalian');
+    {
+        $data['pengembalian'] = $this->returnModel
+            ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
+            ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
+            ->join('items', 'items.id = td.item_id', 'left')
+            ->join('transactions', 'transactions.id = td.transaction_id', 'left')
+            ->orderBy('returns.return_date', 'DESC')
+            ->paginate(10);
 
-    $data['pager'] = $this->returnModel->pager;
+        $data['pager'] = $this->returnModel->pager;
 
-    return view('admin/reports/pengembalian', $data);
-}
+        return view('admin/reports/pengembalian', $data);
+    }
 
     public function reportStok()
     {
@@ -273,16 +274,14 @@ public function editItem($id)
         $builder->join('items i', 'i.id = r.id_item', 'left');
         $builder->join('restokers rs', 'rs.id_restoker = r.id_restoker', 'left');
 
-        // pagination manual
         $perPage = 10;
         $page    = (int)($this->request->getVar('page') ?? 1);
         $offset  = ($page - 1) * $perPage;
 
-        $total   = $builder->countAllResults(false); // hitung total data
+        $total   = $builder->countAllResults(false);
         $builder->limit($perPage, $offset);
         $data['restok'] = $builder->get()->getResultArray();
 
-        // service pager
         $pager = \Config\Services::pager();
         $data['pager'] = $pager->makeLinks($page, $perPage, $total);
 
@@ -308,10 +307,9 @@ public function editItem($id)
         return view('admin/reports/best_selling_products', $data);
     }
 
-   public function reportTopCustomers()
-{
-    $data['top_customers'] = $this->transactionModel->getTopCustomers();
-                                     
-    return view('admin/reports/top_customers', $data);
-}
+    public function reportTopCustomers()
+    {
+        $data['top_customers'] = $this->transactionModel->getTopCustomers();
+        return view('admin/reports/top_customers', $data);
+    }
 }

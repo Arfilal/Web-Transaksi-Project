@@ -18,7 +18,7 @@
                 <thead>
                     <tr>
                         <th>Nama Barang</th>
-                        <!-- HAPUS KOLOM KATEGORI -->
+                        <th>Kategori</th>
                         <th>Harga</th>
                         <th>Stok</th>
                         <th>Aksi</th>
@@ -29,7 +29,7 @@
         <?php foreach($items as $item): ?>
             <tr>
                 <td><?= esc($item['nama_item']) ?></td>
-                <!-- HAPUS KOLOM KATEGORI -->
+                <td><?= esc($item['nama_kategori']) ?></td>
                 <td><?= number_format($item['harga'], 0, ',', '.') ?></td>
                 <td><?= esc($item['stok']) ?></td>
                <td>
@@ -44,7 +44,7 @@
         <?php endforeach; ?>
     <?php else : ?>
         <tr>
-            <td colspan="4" class="text-center">Belum ada data barang</td> </tr> <!-- Ubah colspan jadi 4 -->
+            <td colspan="5" class="text-center">Belum ada data barang</td> </tr>
     <?php endif; ?>
 </tbody>
             </table>
