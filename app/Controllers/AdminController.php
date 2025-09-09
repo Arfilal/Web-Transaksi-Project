@@ -290,16 +290,10 @@ class AdminController extends Controller
         return view('admin/reports/best_selling_products', $data);
     }
 
-    public function reportTopCustomers()
-    {
-        // Ubah logika untuk mengambil dari tabel customers, bukan users
-        $data['top_customers'] = $this->transactionModel
-                                     ->select('customers.name, COUNT(transactions.id) as total_transactions')
-                                     ->join('customers', 'customers.id = transactions.customer_id')
-                                     ->groupBy('customers.name')
-                                     ->orderBy('total_transactions', 'DESC')
-                                     ->findAll();
+   public function reportTopCustomers()
+{
+    $data['top_customers'] = $this->transactionModel->getTopCustomers();
                                      
-        return view('admin/reports/top_customers', $data);
-    }
+    return view('admin/reports/top_customers', $data);
+}
 }

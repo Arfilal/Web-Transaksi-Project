@@ -134,7 +134,7 @@ class ConsumerController extends Controller
     }
     
     // Metode baru untuk memproses form checkout dan mengarahkan ke Xendit
-    public function processCheckout()
+   public function processCheckout()
     {
         // PENTING: Include file autoload
         require_once FCPATH . '../vendor/autoload.php';
@@ -191,6 +191,9 @@ class ConsumerController extends Controller
             'transaction_date' => date('Y-m-d H:i:s'),
             'total_amount' => $total,
             'status' => 'pending',
+            'user_id' => $userId, // Pastikan user_id juga disimpan jika ada
+            'customer_name' => $customerName, // ✅ Tambahkan baris ini
+            'customer_phone' => $customerPhone, // ✅ Tambahkan baris ini
             'customer_id' => $customerId // Gunakan customer_id di transaksi
         ]);
         $transactionId = $this->transactionModel->getInsertID();

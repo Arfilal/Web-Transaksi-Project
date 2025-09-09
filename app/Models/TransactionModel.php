@@ -73,14 +73,14 @@ class TransactionModel extends Model
     }
 
     // Metode yang diperbarui agar sesuai dengan struktur tabel Anda
-    public function getTopCustomers($limit = 5)
-    {
-        return $this->select('customer_name as name, COUNT(id) as total_transactions')
-            ->where('customer_name IS NOT NULL')
-            ->where('customer_name !=', '')
-            ->groupBy('customer_name')
-            ->orderBy('total_transactions', 'DESC')
-            ->limit($limit)
-            ->findAll();
-    }
+   public function getTopCustomers($limit = 5)
+{
+    return $this->select('customer_name as name, COUNT(id) as total_transactions')
+        ->where('customer_name IS NOT NULL')
+        ->where('customer_name !=', '')
+        ->groupBy('customer_name')
+        ->orderBy('total_transactions', 'DESC')
+        ->limit($limit)
+        ->findAll();
+}
 }

@@ -12,20 +12,20 @@
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($top_customers)): ?>
-                    <?php $no = 1; foreach ($top_customers as $customer): ?>
-                    <tr>
-                        <td><?= $no++ ?></td>
-                        <td><?= esc($customer['nama']) ?></td>
-                        <td><?= esc($customer['total_transactions']) ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center">Belum ada data transaksi dari pelanggan yang login.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
+    <?php if (!empty($top_customers)): ?>
+        <?php $no = 1; foreach ($top_customers as $customer): ?>
+        <tr>
+            <td><?= $no++ ?></td>
+            <td><?= esc($customer['name']) ?></td>
+            <td><?= esc($customer['total_transactions']) ?></td>
+        </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="3" class="text-center">Belum ada data transaksi dari pelanggan.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
         </table>
     </div>
 </div>
