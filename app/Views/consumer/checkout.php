@@ -40,7 +40,7 @@
             </div>
             
             <div class="d-grid">
-                <form action="<?= base_url('konsumen/proses-checkout') ?>" method="post">
+                <form action="<?= base_url('konsumen/pembelian/proses-checkout') ?>" method="post">
                 <?= csrf_field() ?>
                 <h4 class="mt-4 mb-3">Informasi Pelanggan</h4>
                 <div class="mb-3">

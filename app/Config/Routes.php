@@ -96,8 +96,8 @@ $routes->group('admin', function ($routes) {
     // ✅ CRUD Restoker
     $routes->group('restoker', function($routes) {
         $routes->get('/', 'RestokerController::index');
-        $routes->get('create', 'RestokerController::create');
-        $routes->post('store', 'RestokerController::store');
+        $routes->get('create', 'RestokController::create');
+        $routes->post('store', 'RestokController::store');
         $routes->get('edit/(:num)', 'RestokerController::edit/$1');
         $routes->post('update/(:num)', 'RestokerController::update/$1');
         $routes->post('delete/(:num)', 'RestokerController::delete/$1');
@@ -114,9 +114,10 @@ $routes->group('konsumen', function ($routes) {
     // ✅ Tambah barang banyak sekaligus
     $routes->post('pembelian/add-selected', 'ConsumerController::addSelected');
     
-    // Checkout
-    $routes->get('pembelian/checkout', 'ConsumerController::checkout');
-    $routes->post('pembelian/checkout', 'ConsumerController::checkout');
+    // Checkout (sekarang menampilkan form)
+    $routes->get('checkout', 'ConsumerController::checkoutForm');
+    // Rute untuk memproses form checkout dan mengarahkan ke Xendit
+    $routes->post('pembelian/proses-checkout', 'ConsumerController::processCheckout');
 
     // ✅ Hapus item dari keranjang
     $routes->get('pembelian/remove/(:num)', 'ConsumerController::remove/$1');
@@ -134,3 +135,6 @@ $routes->group('konsumen', function ($routes) {
 // ======================
 $routes->get('transaksi/sukses', 'ConsumerController::sukses');
 $routes->get('transaksi/gagal', 'ConsumerController::gagal');
+
+// Rute untuk struk (didefinisikan di sini untuk akses publik)
+$routes->get('transaksi/struk/(:num)', 'ConsumerController::struk/$1');

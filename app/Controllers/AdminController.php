@@ -6,11 +6,12 @@ use App\Models\ItemModel;
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
 use App\Models\ReturnModel;
+use App\Models\CustomerModel; // Import model Customer
 use CodeIgniter\Controller;
 use Dompdf\Dompdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory; // Tambahkan ini
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class AdminController extends Controller
 {
@@ -18,6 +19,7 @@ class AdminController extends Controller
     protected $transactionModel;
     protected $transactionDetailModel;
     protected $returnModel;
+    protected $customerModel; // Deklarasi model Customer
 
     public function __construct()
     {
@@ -25,15 +27,16 @@ class AdminController extends Controller
         $this->transactionModel = new TransactionModel();
         $this->transactionDetailModel = new TransactionDetailModel();
         $this->returnModel = new ReturnModel();
+        $this->customerModel = new CustomerModel(); // Inisialisasi model Customer
     }
 
     // --- Menu Barang (CRUD) ---
     public function items()
-{
-    $data['items'] = $this->itemModel->paginate(10); // tampilkan 10 per halaman
-    $data['pager'] = $this->itemModel->pager;       // kirim pager ke view
-    return view('admin/items/index', $data);
-}
+    {
+        $data['items'] = $this->itemModel->paginate(10); // tampilkan 10 per halaman
+        $data['pager'] = $this->itemModel->pager;       // kirim pager ke view
+        return view('admin/items/index', $data);
+    }
 
 
     public function createItem()
@@ -289,7 +292,14 @@ class AdminController extends Controller
 
     public function reportTopCustomers()
     {
-        $data['top_customers'] = $this->transactionModel->getTopCustomers();
+        // Ubah logika untuk mengambil dari tabel customers, bukan users
+        $data['top_customers'] = $this->transactionModel
+                                     ->select('customers.name, COUNT(transactions.id) as total_transactions')
+                                     ->join('customers', 'customers.id = transactions.customer_id')
+                                     ->groupBy('customers.name')
+                                     ->orderBy('total_transactions', 'DESC')
+                                     ->findAll();
+                                     
         return view('admin/reports/top_customers', $data);
     }
 }
