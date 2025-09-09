@@ -76,45 +76,45 @@ class AdminController extends Controller
         return view('admin/items/import');
     }
 
-   public function importExcel()
-{
-    $file = $this->request->getFile('excel_file');
+    public function importExcel()
+    {
+        $file = $this->request->getFile('excel_file');
 
-    if (!$file || !$file->isValid()) {
-        return redirect()->back()->with('error', 'Silakan pilih file Excel yang valid.');
-    }
-
-    try {
-        // Pakai PhpSpreadsheet
-        $reader = IOFactory::createReaderForFile($file->getTempName());
-        $spreadsheet = $reader->load($file->getTempName());
-        $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-
-        $importedCount = 0;
-        foreach ($sheetData as $key => $row) {
-            if ($key === 1) { // Lewati header baris pertama
-                continue;
-            }
-
-            $data = [
-                'nama_item' => trim($row['A']),
-                'harga'     => (int) $row['B'],
-                'stok'      => (int) $row['C'],
-            ];
-
-            if (!empty($data['nama_item']) && $data['harga'] > 0 && $data['stok'] >= 0) {
-                if ($this->itemModel->insert($data)) {
-                    $importedCount++;
-                }
-            }
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'Silakan pilih file Excel yang valid.');
         }
 
-        return redirect()->to(base_url('admin/items'))
-            ->with('success', "$importedCount barang berhasil diimpor.");
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Gagal mengimpor file: ' . $e->getMessage());
+        try {
+            // Pakai PhpSpreadsheet
+            $reader = IOFactory::createReaderForFile($file->getTempName());
+            $spreadsheet = $reader->load($file->getTempName());
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $importedCount = 0;
+            foreach ($sheetData as $key => $row) {
+                if ($key === 1) { // Lewati header baris pertama
+                    continue;
+                }
+
+                $data = [
+                    'nama_item' => trim($row['A']),
+                    'harga'     => (int) $row['B'],
+                    'stok'      => (int) $row['C'],
+                ];
+
+                if (!empty($data['nama_item']) && $data['harga'] > 0 && $data['stok'] >= 0) {
+                    if ($this->itemModel->insert($data)) {
+                        $importedCount++;
+                    }
+                }
+            }
+
+            return redirect()->to(base_url('admin/items'))
+                ->with('success', "$importedCount barang berhasil diimpor.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengimpor file: ' . $e->getMessage());
+        }
     }
-}
 
 
     // --- Menu Riwayat Transaksi ---
@@ -128,10 +128,10 @@ class AdminController extends Controller
     {
         $data['transaction'] = $this->transactionModel->find($id);
         $data['details'] = $this->transactionDetailModel
-                                ->select('transaction_details.*, items.nama_item')
-                                ->join('items', 'items.id = transaction_details.item_id')
-                                ->where('transaction_id', $id)
-                                ->findAll();
+                                 ->select('transaction_details.*, items.nama_item')
+                                 ->join('items', 'items.id = transaction_details.item_id')
+                                 ->where('transaction_id', $id)
+                                 ->findAll();
         return view('admin/transactions/detail', $data);
     }
 
@@ -157,28 +157,28 @@ class AdminController extends Controller
     }
 
     public function report()
-{
-    // Ambil data dari Model
-    $data['daily_sales'] = $this->transactionModel->getDailySales();
-    $data['weekly_sales'] = $this->transactionModel->getWeeklySales();
-    $data['item_sales'] = $this->transactionDetailModel
-                                ->select('items.nama_item, SUM(transaction_details.quantity) as total_quantity')
-                                ->join('items', 'items.id = transaction_details.item_id')
-                                ->groupBy('items.nama_item')
-                                ->findAll();
+    {
+        // Ambil data dari Model
+        $data['daily_sales'] = $this->transactionModel->getDailySales();
+        $data['weekly_sales'] = $this->transactionModel->getWeeklySales();
+        $data['item_sales'] = $this->transactionDetailModel
+                                     ->select('items.nama_item, SUM(transaction_details.quantity) as total_quantity')
+                                     ->join('items', 'items.id = transaction_details.item_id')
+                                     ->groupBy('items.nama_item')
+                                     ->findAll();
 
-    // Siapkan data untuk ChartJS
-    $data['daily_labels'] = array_column($data['daily_sales'], 'date');
-    $data['daily_data']   = array_column($data['daily_sales'], 'total');
+        // Siapkan data untuk ChartJS
+        $data['daily_labels'] = array_column($data['daily_sales'], 'date');
+        $data['daily_data']   = array_column($data['daily_sales'], 'total');
 
-    $data['weekly_labels'] = array_column($data['weekly_sales'], 'week');
-    $data['weekly_data']   = array_column($data['weekly_sales'], 'total');
+        $data['weekly_labels'] = array_column($data['weekly_sales'], 'week');
+        $data['weekly_data']   = array_column($data['weekly_sales'], 'total');
 
-    $data['item_labels'] = array_column($data['item_sales'], 'nama_item');
-    $data['item_data']   = array_column($data['item_sales'], 'total_quantity');
+        $data['item_labels'] = array_column($data['item_sales'], 'nama_item');
+        $data['item_data']   = array_column($data['item_sales'], 'total_quantity');
 
-    return view('admin/reports/index', $data);
-}
+        return view('admin/reports/index', $data);
+    }
 
     public function exportPdf()
     {
@@ -214,83 +214,82 @@ class AdminController extends Controller
         exit;
     }
 
-  public function reportTransaksi()
-{
-    $data['transaksi'] = $this->transactionModel
-        ->select('transactions.*')
-        ->paginate(10); // tampilkan 10 data per halaman
+    public function reportTransaksi()
+    {
+        $data['transaksi'] = $this->transactionModel
+            ->select('transactions.*')
+            ->paginate(10); // tampilkan 10 data per halaman
 
-    $data['pager'] = $this->transactionModel->pager; // kirim pager ke view
+        $data['pager'] = $this->transactionModel->pager; // kirim pager ke view
 
-    return view('admin/reports/transaksi', $data);
-}
+        return view('admin/reports/transaksi', $data);
+    }
 
-public function reportPengembalian()
-{
-    $data['pengembalian'] = $this->returnModel
-        ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
-        ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
-        ->join('items', 'items.id = td.item_id', 'left')
-        ->join('transactions', 'transactions.id = td.transaction_id', 'left')
-        ->paginate(10); // pagination juga
+    public function reportPengembalian()
+    {
+        $data['pengembalian'] = $this->returnModel
+            ->select('returns.*, items.nama_item, td.quantity, transactions.transaction_code')
+            ->join('transaction_details td', 'td.id = returns.transaction_detail_id', 'left')
+            ->join('items', 'items.id = td.item_id', 'left')
+            ->join('transactions', 'transactions.id = td.transaction_id', 'left')
+            ->paginate(10); // pagination juga
 
-    $data['pager'] = $this->returnModel->pager; // kirim pager ke view
+        $data['pager'] = $this->returnModel->pager; // kirim pager ke view
 
-    return view('admin/reports/pengembalian', $data);
-}
+        return view('admin/reports/pengembalian', $data);
+    }
 
-public function reportStok()
-{
-    $db = \Config\Database::connect();
-    $builder = $db->table('restok r');
-    $builder->select([
-        'i.nama_item AS nama_item',
-        'r.stok_dipesan AS jumlah',
-        'r.tanggal_pesan AS tanggal',
-        'rs.nama_restoker AS restoker',
-    ]);
-    $builder->join('items i', 'i.id = r.id_item', 'left');
-    $builder->join('restokers rs', 'rs.id_restoker = r.id_restoker', 'left');
+    public function reportStok()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('restok r');
+        $builder->select([
+            'i.nama_item AS nama_item',
+            'r.stok_dipesan AS jumlah',
+            'r.tanggal_pesan AS tanggal',
+            'rs.nama_restoker AS restoker',
+        ]);
+        $builder->join('items i', 'i.id = r.id_item', 'left');
+        $builder->join('restokers rs', 'rs.id_restoker = r.id_restoker', 'left');
 
-    // pagination manual
-    $perPage = 10;
-    $page    = (int)($this->request->getVar('page') ?? 1);
-    $offset  = ($page - 1) * $perPage;
+        // pagination manual
+        $perPage = 10;
+        $page    = (int)($this->request->getVar('page') ?? 1);
+        $offset  = ($page - 1) * $perPage;
 
-    $total   = $builder->countAllResults(false); // hitung total data
-    $builder->limit($perPage, $offset);
-    $data['restok'] = $builder->get()->getResultArray();
+        $total   = $builder->countAllResults(false); // hitung total data
+        $builder->limit($perPage, $offset);
+        $data['restok'] = $builder->get()->getResultArray();
 
-    // service pager
-    $pager = \Config\Services::pager();
-    $data['pager'] = $pager->makeLinks($page, $perPage, $total);
+        // service pager
+        $pager = \Config\Services::pager();
+        $data['pager'] = $pager->makeLinks($page, $perPage, $total);
 
-    return view('admin/reports/stok', $data);
-}
+        return view('admin/reports/stok', $data);
+    }
 
-public function reportProfitLoss()
-{
-    $db = \Config\Database::connect();
-    $builder = $db->table('transaction_details td');
-    $builder->select('t.transaction_code, t.transaction_date, i.nama_item, td.quantity, td.price, i.harga_beli, (td.price - i.harga_beli) * td.quantity as profit');
-    $builder->join('transactions t', 't.id = td.transaction_id');
-    $builder->join('items i', 'i.id = td.item_id');
-    $builder->where('t.status', 'paid');
-    $data['profits'] = $builder->get()->getResultArray();
+    public function reportProfitLoss()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('transaction_details td');
+        $builder->select('t.transaction_code, t.transaction_date, i.nama_item, td.quantity, td.price, i.harga_beli, (td.price - i.harga_beli) * td.quantity as profit');
+        $builder->join('transactions t', 't.id = td.transaction_id');
+        $builder->join('items i', 'i.id = td.item_id');
+        $builder->where('t.status', 'paid');
+        $data['profits'] = $builder->get()->getResultArray();
 
-    return view('admin/reports/profit_loss', $data);
-}
+        return view('admin/reports/profit_loss', $data);
+    }
 
-public function reportBestSellingProducts()
-{
-    $data['best_selling'] = $this->transactionModel->getBestSellingProducts();
-    return view('admin/reports/best_selling_products', $data);
-}
+    public function reportBestSellingProducts()
+    {
+        $data['best_selling'] = $this->transactionModel->getBestSellingProducts();
+        return view('admin/reports/best_selling_products', $data);
+    }
 
-public function reportTopCustomers()
-{
-    $data['top_customers'] = $this->transactionModel->getTopCustomers();
-    return view('admin/reports/top_customers', $data);
-}
-
+    public function reportTopCustomers()
+    {
+        $data['top_customers'] = $this->transactionModel->getTopCustomers();
+        return view('admin/reports/top_customers', $data);
+    }
 }

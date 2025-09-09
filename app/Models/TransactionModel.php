@@ -10,8 +10,6 @@ class TransactionModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = [
         'user_id',
-        'customer_name',
-        'customer_phone',
         'transaction_code',
         'transaction_date',
         'total_amount',
@@ -74,15 +72,11 @@ class TransactionModel extends Model
 
     public function getTopCustomers($limit = 5)
     {
-        // PERBAIKAN: Menggunakan tabel 'transactions' secara langsung
-        return $this->select('customer_name, COUNT(id) as total_transactions')
-            ->where('status', 'paid')
-            ->where('customer_name IS NOT NULL')
-            ->where('customer_name !=', '')
-            ->groupBy('customer_name')
+        return $this->select('users.nama, COUNT(transactions.id) as total_transactions')
+            ->join('users', 'users.id = transactions.user_id')
+            ->groupBy('users.nama')
             ->orderBy('total_transactions', 'DESC')
             ->limit($limit)
-            ->findAll();
+            ->get()->getResultArray();
     }
 }
-

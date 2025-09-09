@@ -10,15 +10,16 @@ $routes->get('/', function () {
 });
 
 // ======================
-// Rute untuk Webhook Xendit
+// Rute untuk Webhook Xendit (ditempatkan di atas untuk prioritas)
 // ======================
 $routes->post('webhook/xendit', 'WebhookController::xendit');
+
 
 // ======================
 // Rute untuk Login & Logout
 // ======================
 $routes->get('login', 'AuthController::login');
-$routes->post('auth/login', 'AuthController::login');
+$routes->post('auth/login', 'AuthController::login'); // opsional kalau mau login manual
 $routes->get('logout', 'AuthController::logout');
 
 // ======================
@@ -28,7 +29,7 @@ $routes->get('auth/google', 'AuthController::redirectToGoogle');
 $routes->get('auth/google/callback', 'AuthController::handleGoogleCallback');
 
 // ======================
-// Dashboard
+// Dashboard setelah login
 // ======================
 $routes->get('dashboard', 'DashboardController::index');
 
@@ -43,7 +44,7 @@ $routes->group('admin', function ($routes) {
     $routes->get('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->post('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->get('items/delete/(:num)', 'AdminController::deleteItem/$1');
-    
+
     // Impor Barang
     $routes->get('items/import', 'AdminController::showImportForm');
     $routes->post('items/import', 'AdminController::importExcel');
@@ -55,16 +56,24 @@ $routes->group('admin', function ($routes) {
     // Pengembalian
     $routes->get('returns', 'AdminController::returns');
     $routes->get('returns/update-status/(:num)', 'AdminController::updateReturnStatus/$1');
-    
+
     // Laporan
+    $routes->get('reports', 'AdminController::report');
+    $routes->get('reports/export-pdf', 'AdminController::exportPdf');
+    $routes->get('reports/export-excel', 'AdminController::exportExcel');
+
+    // Detail laporan
     $routes->get('reports/transaksi', 'AdminController::reportTransaksi');
     $routes->get('reports/pengembalian', 'AdminController::reportPengembalian');
     $routes->get('reports/stok', 'AdminController::reportStok');
+    
+    // Rute Laporan Baru
     $routes->get('reports/profit-loss', 'AdminController::reportProfitLoss');
     $routes->get('reports/best-selling-products', 'AdminController::reportBestSellingProducts');
     $routes->get('reports/top-customers', 'AdminController::reportTopCustomers');
 
-    // Restok
+
+    // ✅ CRUD Restok
     $routes->group('restok', function($routes) {
         $routes->get('/', 'RestokController::index');
         $routes->get('create', 'RestokController::create');
@@ -72,13 +81,19 @@ $routes->group('admin', function ($routes) {
         $routes->get('edit/(:num)', 'RestokController::edit/$1');
         $routes->post('update/(:num)', 'RestokController::update/$1');
         $routes->post('delete/(:num)', 'RestokController::delete/$1');
+
+        // ✅ Retur
         $routes->get('retur/(:num)', 'RestokController::retur/$1');
+        $routes->post('retur/(:num)', 'RestokController::retur/$1');
         $routes->post('processRetur/(:num)', 'RestokController::processRetur/$1');
+
+        // ✅ History Restok
         $routes->get('history', 'RestokController::history');
+        // Export History Restok ke Excel
         $routes->get('history/export-excel', 'RestokController::exportHistoryExcel');
     });
 
-    // Restoker
+    // ✅ CRUD Restoker
     $routes->group('restoker', function($routes) {
         $routes->get('/', 'RestokerController::index');
         $routes->get('create', 'RestokerController::create');
@@ -86,16 +101,6 @@ $routes->group('admin', function ($routes) {
         $routes->get('edit/(:num)', 'RestokerController::edit/$1');
         $routes->post('update/(:num)', 'RestokerController::update/$1');
         $routes->post('delete/(:num)', 'RestokerController::delete/$1');
-    });
-
-    // CRUD Customers
-    $routes->group('customers', function($routes) {
-        $routes->get('/', 'CustomerController::index');
-        $routes->get('create', 'CustomerController::create');
-        $routes->post('store', 'CustomerController::store');
-        $routes->get('edit/(:num)', 'CustomerController::edit/$1');
-        $routes->post('update/(:num)', 'CustomerController::update/$1');
-        $routes->get('delete/(:num)', 'CustomerController::delete/$1');
     });
 });
 
@@ -105,15 +110,16 @@ $routes->group('admin', function ($routes) {
 $routes->group('konsumen', function ($routes) {
     $routes->get('pembelian', 'ConsumerController::index');
     $routes->get('pembelian/add/(:num)', 'ConsumerController::addToCart/$1');
-    $routes->post('pembelian/add-selected', 'ConsumerController::addSelected');
-    $routes->get('pembelian/remove/(:num)', 'ConsumerController::remove/$1');
 
-    // Checkout
-    $routes->get('checkout', 'ConsumerController::checkoutSummary');
-    $routes->post('proses-checkout', 'ConsumerController::processCheckout');
+    // ✅ Tambah barang banyak sekaligus
+    $routes->post('pembelian/add-selected', 'ConsumerController::addSelected');
     
-    // AJAX
-    $routes->post('ajax/add-customer', 'ConsumerController::ajaxAddCustomer');
+    // Checkout
+    $routes->get('pembelian/checkout', 'ConsumerController::checkout');
+    $routes->post('pembelian/checkout', 'ConsumerController::checkout');
+
+    // ✅ Hapus item dari keranjang
+    $routes->get('pembelian/remove/(:num)', 'ConsumerController::remove/$1');
 
     $routes->get('riwayat', 'ConsumerController::history');
     $routes->get('riwayat/(:num)', 'ConsumerController::historyDetail/$1');
@@ -124,10 +130,7 @@ $routes->group('konsumen', function ($routes) {
 });
 
 // ======================
-// Rute untuk Transaksi & Struk
+// Halaman transaksi sukses/gagal
 // ======================
 $routes->get('transaksi/sukses', 'ConsumerController::sukses');
-$routes->get('transaksi/sukses/(:num)', 'ConsumerController::sukses/$1');
 $routes->get('transaksi/gagal', 'ConsumerController::gagal');
-$routes->get('transaksi/struk/(:num)', 'ConsumerController::struk/$1');
-

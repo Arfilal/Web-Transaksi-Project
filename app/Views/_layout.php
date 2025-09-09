@@ -118,9 +118,7 @@
         <a href="<?= base_url('admin/items') ?>" class="nav-link <?= (strpos(uri_string(), 'admin/items') !== false) ? 'active' : '' ?>">
             <i class="bi bi-box-seam"></i> Manajemen Barang
         </a>
-        <a href="<?= base_url('admin/customers') ?>" class="nav-link <?= (strpos(uri_string(), 'admin/customers') !== false) ? 'active' : '' ?>">
-            <i class="bi bi-people-fill"></i> Manajemen Pelanggan
-        </a>
+        <!-- HAPUS MENU MANAJEMEN KATEGORI -->
         <div class="mb-2">
             <a class="d-flex justify-content-between align-items-center <?= (strpos(uri_string(), 'admin/restok') !== false || strpos(uri_string(), 'admin/restoker') !== false) ? 'active' : '' ?>" 
                data-bs-toggle="collapse" href="#stokDropdown" role="button">
@@ -162,7 +160,7 @@
 
 <div class="main-content">
     
-    <?php if ($is_admin_area && session()->has('user')): $user = session()->get('user'); ?>
+    <?php if ($is_admin_area && isset($user)): ?>
         <header class="d-flex justify-content-end align-items-center mb-4">
             <div class="profile-card p-2 rounded d-flex align-items-center">
                 <img src="<?= esc($user['avatar']) ?>" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
@@ -195,4 +193,3 @@ document.querySelectorAll('.sidebar a[data-bs-toggle="collapse"]').forEach(funct
 </script>
 </body>
 </html>
-

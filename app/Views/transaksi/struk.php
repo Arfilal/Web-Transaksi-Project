@@ -68,7 +68,6 @@
     <div class="info">
         <p>No: <?= esc($transaction['transaction_code']) ?></p>
         <p>Tgl: <?= date('d/m/Y H:i', strtotime($transaction['transaction_date'])) ?></p>
-        <p>Pelanggan: <?= esc($transaction['customer_name'] ?? 'Umum') ?></p>
     </div>
 
     <div class="items">
