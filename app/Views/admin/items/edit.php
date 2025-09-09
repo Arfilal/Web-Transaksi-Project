@@ -35,6 +35,10 @@
             <input type="number" class="form-control" id="harga" name="harga" value="<?= old('harga', $item['harga']) ?>" required>
         </div>
         <div class="mb-3">
+            <label for="diskon" class="form-label">Diskon (%):</label>
+            <input type="number" class="form-control" id="diskon" name="diskon" value="<?= old('diskon', $item['diskon']) ?>" min="0" max="100" step="0.01">
+        </div>
+        <div class="mb-3">
             <label for="harga_beli" class="form-label">Harga Beli:</label>
             <input type="number" class="form-control" id="harga_beli" name="harga_beli" value="<?= old('harga_beli', $item['harga_beli']) ?>" required>
         </div>
