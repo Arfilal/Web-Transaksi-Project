@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use CodeIgniter\Config\Services; // Tambahkan ini
 use Google_Client;
 use Google_Service_Oauth2;
 
@@ -29,7 +30,37 @@ class AuthController extends BaseController
 
     public function login()
     {
-        // tampilkan halaman login manual + tombol google
+        // Cek jika ada data POST dari formulir login manual
+        if ($this->request->getPost()) {
+            $recaptchaResponse = $this->request->getPost('g-recaptcha-response');
+
+            // Panggil API Google untuk verifikasi reCAPTCHA
+            $client = Services::curlrequest();
+            $response = $client->request('POST', 'https://www.google.com/recaptcha/api/siteverify', [
+                'form_params' => [
+                    'secret'   => getenv('RECAPTCHA_SECRET_KEY'),
+                    'response' => $recaptchaResponse,
+                ]
+            ]);
+
+            $body = json_decode($response->getBody());
+
+            // Jika verifikasi CAPTCHA gagal
+            if (! $body->success) {
+                return redirect()->back()->with('error', 'Verifikasi CAPTCHA gagal, silakan coba lagi.');
+            }
+
+            // --- Tempatkan logika login manual Anda di sini ---
+            // Contoh: 
+            // $email = $this->request->getPost('email');
+            // $password = $this->request->getPost('password');
+            // ... (lanjutan validasi dan proses login manual)
+            
+            // Jika login berhasil, alihkan ke dashboard.
+            // Jika gagal, kembalikan dengan pesan error.
+        }
+
+        // Tampilkan halaman login saat tidak ada data POST
         return view('login');
     }
 
@@ -92,7 +123,7 @@ class AuthController extends BaseController
         return redirect()->to('/login')->with('error', 'Gagal login dengan Google');
     }
 
-    public function logout()
+     public function logout()
     {
         session()->destroy();
         return redirect()->to('/login')->with('success', 'Anda berhasil logout.');

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> <!-- Tambahin ini -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="bg-light">
 
@@ -17,7 +18,7 @@
         <?php endif; ?>
 
         <form action="<?= base_url('auth/login') ?>" method="post">
-            <?= csrf_field() ?> <!-- Tambahkan ini -->
+            <?= csrf_field() ?>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="text" name="email" id="email" class="form-control" required>
@@ -26,7 +27,10 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" name="password" id="password" class="form-control" required>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+
+            <div class="g-recaptcha" data-sitekey="<?= getenv('RECAPTCHA_SITE_KEY') ?>"></div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
         </form>
 
         <hr>
