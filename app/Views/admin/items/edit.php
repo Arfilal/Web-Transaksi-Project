@@ -24,7 +24,7 @@
             <label for="category_id" class="form-label">Kategori:</label>
             <select name="category_id" id="category_id" class="form-control" required>
                 <?php foreach ($categories as $category): ?>
-                    <option value="<?= $category['id'] ?>" <?= ($category['id'] == $item['category_id']) ? 'selected' : '' ?>>
+                    <option value="<?= $category['id'] ?>" <?= ($category['id'] == old('category_id', $item['category_id'])) ? 'selected' : '' ?>>
                         <?= esc($category['nama_kategori']) ?>
                     </option>
                 <?php endforeach; ?>

@@ -71,27 +71,41 @@
     </div>
 
     <div class="items">
-        <table>
-            <tbody>
-                <?php $grandTotal = 0; ?>
-                <?php foreach($details as $item): ?>
-                <?php $subtotal = $item['quantity'] * $item['price']; $grandTotal += $subtotal; ?>
-                <tr>
-                    <td colspan="2"><?= esc($item['nama_item']) ?></td>
-                </tr>
-                <tr>
-                    <td><?= $item['quantity'] ?> x <?= number_format($item['price'], 0, ',', '.') ?></td>
-                    <td class="price"><?= number_format($subtotal, 0, ',', '.') ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+    <table>
+        <tbody>
+            <?php $grandTotal = 0; ?>
+            <?php foreach($details as $item): ?>
+            <?php 
+                $subtotal = $item['quantity'] * $item['price']; 
+                $grandTotal += $subtotal;
+                $originalSubtotal = $item['quantity'] * $item['original_price'];
+                $discountAmount = $originalSubtotal - $subtotal;
+            ?>
+            <tr>
+                <td colspan="2"><?= esc($item['nama_item']) ?></td>
+            </tr>
+            <tr>
+                <td><?= $item['quantity'] ?> x <?= number_format($item['original_price'], 0, ',', '.') ?></td>
+                <td class="price"><?= number_format($originalSubtotal, 0, ',', '.') ?></td>
+            </tr>
+            <?php if ($item['diskon'] > 0): ?>
+            <tr style="color: #666;">
+                <td>Diskon (<?= $item['diskon'] ?>%)</td>
+                <td class="price">- <?= number_format($discountAmount, 0, ',', '.') ?></td>
+            </tr>
+            <tr>
+                <td>Harga Akhir</td>
+                <td class="price"><?= number_format($subtotal, 0, ',', '.') ?></td>
+            </tr>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
 
-    <div class="total">
-        <p>TOTAL : Rp <?= number_format($grandTotal, 0, ',', '.') ?></p>
-    </div>
-
+<div class="total">
+    <p>TOTAL : Rp <?= number_format($grandTotal, 0, ',', '.') ?></p>
+</div>
     <div class="footer">
         <p>Terima Kasih Telah Berbelanja!</p>
     </div>

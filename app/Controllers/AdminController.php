@@ -119,29 +119,44 @@ class AdminController extends Controller
     }
 
     public function editItem($id)
-    {
-        if ($this->request->getMethod() === 'post') {
-            $rules = [
-                'nama_item'  => 'required',
-                'harga'      => 'required|numeric|greater_than_equal_to[0]',
-                'harga_beli' => 'required|numeric|greater_than_equal_to[0]',
-                'stok'       => 'required|numeric|greater_than_equal_to[0]',
-                'category_id' => 'required|integer',
-            ];
-            
-            if (!$this->validate($rules)) {
-                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-            }
-    
-            $data = $this->request->getPost();
-            $this->itemModel->update($id, $data);
-            return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
+{
+    $data['item'] = $this->itemModel->find($id);
+
+    // Jika item tidak ditemukan, kembalikan ke halaman daftar dengan error
+    if (!$data['item']) {
+        return redirect()->to(base_url('admin/items'))->with('error', 'Barang tidak ditemukan.');
+    }
+
+    // Jika ada data POST, proses update
+    if ($this->request->getPost()) {
+        $rules = [
+            'nama_item'   => 'required',
+            'harga'       => 'required|numeric|greater_than_equal_to[0]',
+            'harga_beli'  => 'required|numeric|greater_than_equal_to[0]',
+            'stok'        => 'required|numeric|greater_than_equal_to[0]',
+            'category_id' => 'required|integer',
+            'diskon'      => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
+        ];
+        
+        if (!$this->validate($rules)) {
+            // Jika validasi gagal, kembalikan ke form dengan input dan error
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $data['item'] = $this->itemModel->find($id);
-        $data['categories'] = $this->categoryModel->findAll();
-        return view('admin/items/edit', $data);
+        // Ambil data dari POST
+        $postData = $this->request->getPost();
+        
+        // Lakukan update ke database
+        $this->itemModel->update($id, $postData);
+        
+        // Redirect ke halaman daftar barang dengan pesan sukses
+        return redirect()->to(base_url('admin/items'))->with('success', 'Barang berhasil diupdate.');
     }
+
+    // Jika tidak ada data POST, tampilkan form edit
+    $data['categories'] = $this->categoryModel->findAll();
+    return view('admin/items/edit', $data);
+}
 
     public function deleteItem($id)
     {

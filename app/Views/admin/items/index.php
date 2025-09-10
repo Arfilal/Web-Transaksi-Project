@@ -2,6 +2,17 @@
 
 <?= $this->section('content') ?>
     <h3>📋 Manajemen Barang</h3>
+    <?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= session()->getFlashdata('success') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php elseif (session()->getFlashdata('error')): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= session()->getFlashdata('error') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 
     <div class="mb-3 d-flex">
         <a href="<?= base_url('admin/items/import') ?>" class="btn btn-success me-2">
@@ -38,9 +49,12 @@
     <a href="<?= base_url('admin/items/edit/'.$item['id']) ?>" class="btn btn-warning btn-sm">
         <i class="bi bi-pencil-square"></i>
     </a>
-    <a href="<?= base_url('admin/items/delete/'.$item['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus barang ini?')">
+   <form action="<?= base_url('admin/items/delete/'.$item['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus barang ini?')">
+    <?= csrf_field() ?>
+    <button type="submit" class="btn btn-danger btn-sm">
         <i class="bi bi-trash"></i>
-    </a>
+    </button>
+</form>
 </td>
             </tr>
         <?php endforeach; ?>

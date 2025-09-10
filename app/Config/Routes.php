@@ -53,7 +53,7 @@ $routes->group('admin', function ($routes) {
     $routes->post('items/create', 'AdminController::createItem');
     $routes->get('items/edit/(:num)', 'AdminController::editItem/$1');
     $routes->post('items/edit/(:num)', 'AdminController::editItem/$1');
-    $routes->get('items/delete/(:num)', 'AdminController::deleteItem/$1');
+    $routes->post('items/delete/(:num)', 'AdminController::deleteItem/$1');
 
     // Impor Barang
     $routes->get('items/import', 'AdminController::showImportForm');
